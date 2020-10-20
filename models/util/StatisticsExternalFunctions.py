@@ -60,13 +60,42 @@ def get_percent(cred_obrig_int, cred_opt_int, cred_comp_int):
 
 # Função que formata o json de resposta das rotas que geram os dados de alunos
 ## ativos e egressos  para exportar para o arquivo .csv.
-def response_json_to_csv_export(dados):
+def response_json_to_csv_actives_export(dados):
   json_return = []
   
   for registro in dados:
     json_return.append({
       "matricula": registro[0],
       "periodo_ingresso": registro[1],
+      "periodos_integralizados": registro[2],
+      "cred_obrig_int": registro[3],
+      "cred_opt_int": registro[4],
+      "cred_comp_int": registro[5],
+      "cota": registro[6],
+      "genero": registro[7],
+      "estado_civil": registro[8],
+      "curriculo": registro[9],
+      "cra": registro[10],
+      "mc": registro[11],
+      "iea": registro[12],
+      "trancamentos_totais": registro[13],
+      "matriculas_institucionais": registro[14],
+      "mobilidade_estudantil": registro[15],
+      "media_geral_ingresso": registro[16]
+    })
+  
+  return jsonify(json_return)
+
+
+# Função que formata o json de resposta das rotas que geram os dados de alunos
+## egressos  para exportar para o arquivo .csv.
+def response_json_to_csv_graduates_export(dados):
+  json_return = []
+  
+  for registro in dados:
+    json_return.append({
+      "matricula": registro[0],
+      "periodo_conclusao": registro[1],
       "periodos_integralizados": registro[2],
       "cred_obrig_int": registro[3],
       "cred_opt_int": registro[4],
@@ -95,7 +124,7 @@ def response_json_to_csv_escaped_export(dados):
   for registro in dados:
     json_return.append({
       "matricula": registro[0],
-      "periodo_ingresso": registro[1],
+      "periodo_evasao": registro[1],
       "motivo_evasao": registro[2],
       "periodos_integralizados": registro[3],
       "cred_obrig_int": registro[4],
@@ -155,7 +184,7 @@ def response_json_to_graduates_route(periods):
   response = []
   for i in range(len(periods)):
     response.append({
-      "semestre_ingresso": periods[i][0], 
+      "semestre_conclusao": periods[i][0], 
       "qtd_egressos": periods[i][1],
       "cra_medio": round(periods[i][2], 2),
     })
@@ -167,15 +196,15 @@ def response_json_to_graduates_route(periods):
 ## de cancelamento da matrícula) de um único período passado.
 def process_query_of_one_period(id_curso, id, periodo):
 
-  query = 'SELECT semestre_ingresso, count(*) AS qtd_evadidos \
+  query = 'SELECT semestre_situacao, count(*) AS qtd_evadidos \
     FROM "DiscenteVinculo" \
     INNER JOIN "Discente" \
       ON "DiscenteVinculo".cpf = "Discente".cpf \
     WHERE id_curso=' + id_curso + ' \
     AND id_situacao_vinculo=' + str(id) + ' \
-    AND semestre_ingresso=\'' + str(periodo) + '\' \
-    GROUP BY semestre_ingresso \
-    ORDER BY semestre_ingresso'
+    AND semestre_situacao=\'' + str(periodo) + '\' \
+    GROUP BY semestre_situacao \
+    ORDER BY semestre_situacao'
 
   result = connection.select(query)
   
@@ -190,15 +219,15 @@ def process_query_of_one_period(id_curso, id, periodo):
 ## de cancelamento da matrícula) de um intervalo de períodos passados.
 def process_query_of_interval_of_the_periods(id_curso, id, minimo, maximo):
 
-  query = 'SELECT semestre_ingresso, count(*) AS qtd_egressos \
+  query = 'SELECT semestre_situacao, count(*) AS qtd_egressos \
     FROM "DiscenteVinculo" \
     INNER JOIN "Discente" \
     ON "DiscenteVinculo".cpf = "Discente".cpf \
     WHERE id_curso=' + id_curso + \
     'AND id_situacao_vinculo=' + str(id) + \
-    'AND semestre_ingresso BETWEEN \'' + str(minimo) + '\' AND \'' + str(maximo) + '\' \
-    GROUP BY semestre_ingresso \
-    ORDER BY semestre_ingresso'
+    'AND semestre_situacao BETWEEN \'' + str(minimo) + '\' AND \'' + str(maximo) + '\' \
+    GROUP BY semestre_situacao \
+    ORDER BY semestre_situacao'
 
   result = connection.select(query)
   
@@ -213,14 +242,14 @@ def process_query_of_interval_of_the_periods(id_curso, id, minimo, maximo):
 ## de cancelamento da matrícula, de todos os períodos registrados.
 def process_query_of_escaped(id_curso, id):
 
-  query = 'SELECT semestre_ingresso, count(*) AS qtd_evadidos \
+  query = 'SELECT semestre_situacao, count(*) AS qtd_evadidos \
     FROM "DiscenteVinculo" \
     INNER JOIN "Discente" \
       ON "DiscenteVinculo".cpf = "Discente".cpf \
     WHERE id_curso=' + id_curso + '\
     AND id_situacao_vinculo=' + str(id) + '\
-    GROUP BY semestre_ingresso \
-    ORDER BY semestre_ingresso'
+    GROUP BY semestre_situacao \
+    ORDER BY semestre_situacao'
 
   result = connection.select(query)
   
