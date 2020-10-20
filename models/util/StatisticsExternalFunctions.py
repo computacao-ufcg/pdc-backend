@@ -178,7 +178,7 @@ def get_statistics(results):
 
 
 # Função auxiliar que monta a estrutura json para os alunos egressos (graduados), 
-## retorna um array de objetos, onde cada objeto contém o semestre de vínculo e a
+## retorna um array de objetos, onde cada objeto contém o período de vínculo e a
 ### quantidade de egressos daquele período.
 def response_json_to_graduates_route(periods):
   response = []
@@ -285,7 +285,7 @@ def join_results_of_escaped_query(results):
 # Função responsável por adicionar a resposta json os períodos do intervalo que não possui
 ## alunos evadidos de nenhum dos tipos. periodo_min e max têm valores padrão para o caso de
 ### a função ser chamadas sem os parâmetros 'de' e 'ate', ou seja, todo o intervalo.
-def add_periods_without_escaped(periodo_min='1987.1', periodo_max='2020.1', *, dados):
+def add_periods_without_escaped(periodo_min='1987.1', periodo_max=constants.PERIODO_ATUAL, *, dados):
   ano_ini = int(periodo_min[:4])
   ano_fim = int(periodo_max[:4])
   semestre_ini = int(periodo_min[5])
@@ -320,7 +320,7 @@ def fill_tag_list_with_zeros(json):
   return json
 
 
-# Função que prepara o json para retorno, onde cada objeto irá possui a chave semestre com
+# Função que prepara o json para retorno, onde cada objeto irá possui a chave 'periodo' com
 ## o período e outra chave tags, que correspondem as 9 tags que representam a quantidade
 ### de evadidos pelo motivo i, onde i é um número entre 1 e 9, inclusive.
 def response_json_to_escaped_route(json):
