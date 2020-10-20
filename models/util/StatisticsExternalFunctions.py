@@ -184,7 +184,7 @@ def response_json_to_graduates_route(periods):
   response = []
   for i in range(len(periods)):
     response.append({
-      "semestre_conclusao": periods[i][0], 
+      "periodo_conclusao": periods[i][0], 
       "qtd_egressos": periods[i][1],
       "cra_medio": round(periods[i][2], 2),
     })
@@ -196,21 +196,21 @@ def response_json_to_graduates_route(periods):
 ## de cancelamento da matrícula) de um único período passado.
 def process_query_of_one_period(id_curso, id, periodo):
 
-  query = 'SELECT semestre_situacao, count(*) AS qtd_evadidos \
+  query = 'SELECT periodo_situacao, count(*) AS qtd_evadidos \
     FROM "DiscenteVinculo" \
     INNER JOIN "Discente" \
       ON "DiscenteVinculo".cpf = "Discente".cpf \
     WHERE id_curso=' + id_curso + ' \
     AND id_situacao_vinculo=' + str(id) + ' \
-    AND semestre_situacao=\'' + str(periodo) + '\' \
-    GROUP BY semestre_situacao \
-    ORDER BY semestre_situacao'
+    AND periodo_situacao=\'' + str(periodo) + '\' \
+    GROUP BY periodo_situacao \
+    ORDER BY periodo_situacao'
 
   result = connection.select(query)
   
   retorno = []
   for i in range(len(result)):
-    retorno.append({"semestre": result[i][0], "tag"+str(id): result[i][1]})
+    retorno.append({"periodo": result[i][0], "tag"+str(id): result[i][1]})
 
   return retorno
 
@@ -219,21 +219,21 @@ def process_query_of_one_period(id_curso, id, periodo):
 ## de cancelamento da matrícula) de um intervalo de períodos passados.
 def process_query_of_interval_of_the_periods(id_curso, id, minimo, maximo):
 
-  query = 'SELECT semestre_situacao, count(*) AS qtd_egressos \
+  query = 'SELECT periodo_situacao, count(*) AS qtd_egressos \
     FROM "DiscenteVinculo" \
     INNER JOIN "Discente" \
     ON "DiscenteVinculo".cpf = "Discente".cpf \
     WHERE id_curso=' + id_curso + \
     'AND id_situacao_vinculo=' + str(id) + \
-    'AND semestre_situacao BETWEEN \'' + str(minimo) + '\' AND \'' + str(maximo) + '\' \
-    GROUP BY semestre_situacao \
-    ORDER BY semestre_situacao'
+    'AND periodo_situacao BETWEEN \'' + str(minimo) + '\' AND \'' + str(maximo) + '\' \
+    GROUP BY periodo_situacao \
+    ORDER BY periodo_situacao'
 
   result = connection.select(query)
   
   retorno = []
   for i in range(len(result)):
-    retorno.append({"semestre": result[i][0], "tag"+str(id): result[i][1]})
+    retorno.append({"periodo": result[i][0], "tag"+str(id): result[i][1]})
 
   return retorno
 
@@ -242,20 +242,20 @@ def process_query_of_interval_of_the_periods(id_curso, id, minimo, maximo):
 ## de cancelamento da matrícula, de todos os períodos registrados.
 def process_query_of_escaped(id_curso, id):
 
-  query = 'SELECT semestre_situacao, count(*) AS qtd_evadidos \
+  query = 'SELECT periodo_situacao, count(*) AS qtd_evadidos \
     FROM "DiscenteVinculo" \
     INNER JOIN "Discente" \
       ON "DiscenteVinculo".cpf = "Discente".cpf \
     WHERE id_curso=' + id_curso + '\
     AND id_situacao_vinculo=' + str(id) + '\
-    GROUP BY semestre_situacao \
-    ORDER BY semestre_situacao'
+    GROUP BY periodo_situacao \
+    ORDER BY periodo_situacao'
 
   result = connection.select(query)
   
   retorno = []
   for i in range(len(result)):
-    retorno.append({"semestre": result[i][0], "tag"+str(id): result[i][1]})
+    retorno.append({"periodo": result[i][0], "tag"+str(id): result[i][1]})
 
   return retorno
 
@@ -268,16 +268,16 @@ def join_results_of_escaped_query(results):
   dic_periodos = {}
   for i in range(len(results)):
     for j in range(len(results[i])):
-      if (results[i][j]['semestre'] in dic_periodos):
+      if (results[i][j]['periodo'] in dic_periodos):
         if (i == 9):
-          dic_periodos[str(results[i][j]['semestre'])]['tag'+str(i+4)] = results[i][j]['tag'+str(i+4)]
+          dic_periodos[str(results[i][j]['periodo'])]['tag'+str(i+4)] = results[i][j]['tag'+str(i+4)]
         else:
-          dic_periodos[str(results[i][j]['semestre'])]['tag'+str(i+1)] = results[i][j]['tag'+str(i+1)]
+          dic_periodos[str(results[i][j]['periodo'])]['tag'+str(i+1)] = results[i][j]['tag'+str(i+1)]
       else:
         if (i == 9):
-          dic_periodos[str(results[i][j]['semestre'])] = { 'tag'+str(i+4): results[i][j]['tag'+str(i+4)] }
+          dic_periodos[str(results[i][j]['periodo'])] = { 'tag'+str(i+4): results[i][j]['tag'+str(i+4)] }
         else:
-          dic_periodos[str(results[i][j]['semestre'])] = { 'tag'+str(i+1): results[i][j]['tag'+str(i+1)] }
+          dic_periodos[str(results[i][j]['periodo'])] = { 'tag'+str(i+1): results[i][j]['tag'+str(i+1)] }
 
   return dic_periodos
 

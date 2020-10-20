@@ -51,7 +51,7 @@ class Curso():
   def get_period(self, args):
       periodo = args.get('de')
 
-      result = 'AND "DiscenteVinculo".semestre_ingresso=\'' + str(periodo) + '\''
+      result = 'AND "DiscenteVinculo".periodo_ingresso=\'' + str(periodo) + '\''
       return result
 
 
@@ -61,7 +61,7 @@ class Curso():
   def get_actives(self, args):
     base_query = 'SELECT "DiscenteVinculo".matricula, "DiscenteVinculo".per_int, \
       "DiscenteVinculo".cred_obrig_int, "DiscenteVinculo".cred_opt_int, "DiscenteVinculo".cred_comp_int, \
-      "DiscenteVinculo".semestre_ingresso \
+      "DiscenteVinculo".periodo_ingresso \
       FROM "DiscenteVinculo" \
       INNER JOIN "Discente" \
         ON "DiscenteVinculo".cpf = "Discente".cpf \
@@ -87,11 +87,11 @@ class Curso():
         base_query += self.get_period(args)
       # Caso normal, minimo < maximo
       else:
-        base_query += 'AND semestre_ingresso BETWEEN \'' + str(minimo) + '\' AND \'' + str(maximo) + '\' \
-          ORDER BY semestre_ingresso'
+        base_query += 'AND periodo_ingresso BETWEEN \'' + str(minimo) + '\' AND \'' + str(maximo) + '\' \
+          ORDER BY periodo_ingresso'
 
     else:
-      base_query += 'ORDER BY semestre_ingresso'
+      base_query += 'ORDER BY periodo_ingresso'
 
     result = self.connection.select(base_query)
     return response_json_to_active_route(result)
@@ -100,7 +100,7 @@ class Curso():
   # Função que retorna os dados para geração do arquivo csv de alunos ativos.
   def export_to_csv_actives(self, args):
 
-    base_query = 'SELECT "DiscenteVinculo".matricula, semestre_ingresso, per_int, \
+    base_query = 'SELECT "DiscenteVinculo".matricula, periodo_ingresso, per_int, \
       cred_obrig_int, cred_opt_int, cred_comp_int, "Cota".descricao, "Genero".descricao, \
       "EstadoCivil".descricao, curriculo, cra, mc, iea, tranc, mat_inst, \
       mob_estudantil, media_geral_ingresso \
@@ -133,11 +133,11 @@ class Curso():
         base_query += self.get_period(args)
       # Caso normal, minimo < maximo
       else:
-        base_query += 'AND semestre_ingresso BETWEEN \'' + str(minimo) + '\' AND \'' + str(maximo) + '\' \
-          ORDER BY semestre_ingresso'
+        base_query += 'AND periodo_ingresso BETWEEN \'' + str(minimo) + '\' AND \'' + str(maximo) + '\' \
+          ORDER BY periodo_ingresso'
 
     else:
-      base_query += 'ORDER BY semestre_ingresso'
+      base_query += 'ORDER BY periodo_ingresso'
 
     result = self.connection.select(base_query)
     return response_json_to_csv_actives_export(result)
@@ -147,7 +147,7 @@ class Curso():
   ## Computação e suas estatísticas de todos os períodos.
   def get_graduates(self, args):
 
-    base_query = 'SELECT semestre_situacao, count(*) AS qtd_egressos, avg(cra) AS cra_medio \
+    base_query = 'SELECT periodo_situacao, count(*) AS qtd_egressos, avg(cra) AS cra_medio \
       FROM "DiscenteVinculo" \
       INNER JOIN "Discente" \
         ON "DiscenteVinculo".cpf = "Discente".cpf \
@@ -159,16 +159,16 @@ class Curso():
     if (len(args) == 1):
       periodo = args.get('de')
 
-      base_query += 'AND semestre_situacao=\'' + str(periodo) + '\' \
-        GROUP BY semestre_situacao \
-        ORDER BY semestre_situacao'
+      base_query += 'AND periodo_situacao=\'' + str(periodo) + '\' \
+        GROUP BY periodo_situacao \
+        ORDER BY periodo_situacao'
 
       result = self.connection.select(base_query)
 
       # Caso não hajam registros que correspondam a query passada.
       if (len(result) == 0):
         return { 
-          "semestre_conclusao": periodo, 
+          "periodo_conclusao": periodo, 
           "qtd_egressos": 0,
           "cra_medio": 0 
         }
@@ -187,15 +187,15 @@ class Curso():
       if (minimo > maximo or minimo == maximo):
         return { "error": "Parameters or invalid request" }, 404
 
-      base_query += 'AND semestre_situacao BETWEEN \'' + str(minimo) + '\' AND \'' + str(maximo) + '\'\
-        GROUP BY semestre_situacao \
-        ORDER BY semestre_situacao'
+      base_query += 'AND periodo_situacao BETWEEN \'' + str(minimo) + '\' AND \'' + str(maximo) + '\'\
+        GROUP BY periodo_situacao \
+        ORDER BY periodo_situacao'
 
     # Para rotas do tipo '.../api/estatisticas/egressos', que retornam o número de egressos de
     ## todos os períodos até então cadastrados.
     else:
-      base_query += 'GROUP BY semestre_situacao \
-        ORDER BY semestre_situacao'
+      base_query += 'GROUP BY periodo_situacao \
+        ORDER BY periodo_situacao'
 
     result = self.connection.select(base_query)
     statistics = get_statistics(result)
@@ -219,7 +219,7 @@ class Curso():
     # Query base que trás as informações que são comuns às rotas que possuem parâmetros,
     ## e para cada parâmetro, a condição específica é adicionada a essa string de consulta
     ### base.
-    base_query = 'SELECT matricula, semestre_situacao, per_int, cred_obrig_int, \
+    base_query = 'SELECT matricula, periodo_situacao, per_int, cred_obrig_int, \
       cred_opt_int, cred_comp_int, "Cota".descricao, "Genero".descricao, "EstadoCivil".descricao, \
       curriculo, cra, mc, iea, tranc, mat_inst, mob_estudantil, media_geral_ingresso \
       FROM "DiscenteVinculo" \
@@ -237,8 +237,8 @@ class Curso():
     if (len(args) == 1):
       periodo = args.get('de')
 
-      base_query += 'AND semestre_situacao=\'' + str(periodo) + '\' \
-        ORDER BY semestre_situacao'
+      base_query += 'AND periodo_situacao=\'' + str(periodo) + '\' \
+        ORDER BY periodo_situacao'
 
     elif (len(args) == 2):
       minimo = args.get('de')
@@ -249,11 +249,11 @@ class Curso():
       if (minimo > maximo or minimo == maximo):
         return { "error": "Parameters or invalid request" }, 404
 
-      base_query += 'AND semestre_situacao BETWEEN \'' + str(minimo) + '\' AND \'' + str(maximo) + '\'\
-        ORDER BY semestre_situacao'
+      base_query += 'AND periodo_situacao BETWEEN \'' + str(minimo) + '\' AND \'' + str(maximo) + '\'\
+        ORDER BY periodo_situacao'
 
     else:
-      base_query += 'ORDER BY semestre_situacao'
+      base_query += 'ORDER BY periodo_situacao'
 
     result = self.connection.select(base_query)
     return response_json_to_csv_graduates_export(result)
@@ -346,7 +346,7 @@ class Curso():
     # Query base que trás as informações que são comuns às rotas que possuem parâmetros,
     ## e para cada parâmetro, a condição específica é adicionada a essa string de consulta
     ### base.
-    base_query = 'SELECT matricula, semestre_situacao, "SituacaoVinculo".descricao, \
+    base_query = 'SELECT matricula, periodo_situacao, "SituacaoVinculo".descricao, \
       per_int, cred_obrig_int, cred_opt_int, cred_comp_int, "Cota".descricao, \
       "Genero".descricao, "EstadoCivil".descricao, curriculo, cra, mc, iea, tranc, \
       mat_inst, mob_estudantil, media_geral_ingresso \
@@ -369,7 +369,7 @@ class Curso():
     if (len(args) == 1):
       periodo = args.get('de')
 
-      base_query += 'AND semestre_situacao=\'' + str(periodo) + '\' \
+      base_query += 'AND periodo_situacao=\'' + str(periodo) + '\' \
         ORDER BY id_situacao_vinculo' 
     
     elif (len(args) == 2):
@@ -381,11 +381,11 @@ class Curso():
       if (minimo > maximo or minimo == maximo):
         return { "error": "Parameters or invalid request" }, 404
 
-      base_query += 'AND semestre_situacao BETWEEN \'' + str(minimo) + '\' AND \'' + str(maximo) + '\'\
-        ORDER BY semestre_situacao' 
+      base_query += 'AND periodo_situacao BETWEEN \'' + str(minimo) + '\' AND \'' + str(maximo) + '\'\
+        ORDER BY periodo_situacao' 
     
     else:
-      base_query += 'ORDER BY semestre_situacao'
+      base_query += 'ORDER BY periodo_situacao'
 
     result = self.connection.select(base_query)
 
