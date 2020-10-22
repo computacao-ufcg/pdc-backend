@@ -390,4 +390,48 @@ class Curso():
     result = self.connection.select(base_query)
 
     return response_json_to_csv_escaped_export(result)
+
+  
+  # Função responsável por calcular a velocidade média dos alunos ativos do curso de Computação
+  ## na UFCG.
+  def get_average_speed(self):
+    query = 'SELECT matricula, cred_obrig_int, cred_opt_int, per_int \
+      FROM "DiscenteVinculo" \
+      WHERE id_curso = ' + self.id_computacao + ' \
+      AND id_situacao = ' + self.id_ativo + ' \
+      AND id_situacao_vinculo = ' + self.id_regular + ' \
+      AND per_int > 0'
+
+    result = self.connection.select(query)
+
+    qtd_ativos = len(result)
+    alunos_velocidades = []
+    acumulador_velocidades = 0
+    for registro in result:
+      matricula = registro[0]
+      cred_obrig = registro[1]
+      cred_opt = registro[2]
+
+      if(cred_obrig == None):
+        cred_obrig = 0
+      if(cred_opt == None):
+        cred_opt = 0
+
+      creditos_totais = cred_obrig + cred_opt
+      periodos_integralizados = registro[3]
+
+      velocidade_media_aluno = creditos_totais / periodos_integralizados
+
+      acumulador_velocidades += velocidade_media_aluno
+
+      alunos_velocidades.append({
+        "matricula": matricula,
+        "velocidade_media": round(velocidade_media_aluno, 2),
+      })
+
+    return jsonify(
+      alunos_ativos=alunos_velocidades,
+      qtd_ativos=qtd_ativos,
+      velocidade_media_ativos=round(acumulador_velocidades / qtd_ativos, 2),
+    )
     
