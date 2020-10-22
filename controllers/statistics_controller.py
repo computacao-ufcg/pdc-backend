@@ -50,6 +50,8 @@ def export_to_csv_actives():
 
   return curso.export_to_csv_actives(args)
 
+# Rota responsável por retornar as informações que vão compor o arquivo .csv de alunos
+## egressos ou graduados.
 @routes.route("/api/estatisticas/egressos/csv")
 @cross_origin()
 def export_to_csv_graduates():
@@ -57,9 +59,18 @@ def export_to_csv_graduates():
   
   return curso.export_to_csv_graduates(args)
 
+# Rota responsável por retornar as informações que vão compor o arquivo .csv de alunos
+## evadidos.
 @routes.route("/api/estatisticas/evadidos/csv")
 @cross_origin()
 def export_to_csv_escaped():
   args = request.args
 
   return curso.export_to_csv_escaped(args)
+
+# Rota responsável por retornar as informações de velocidade média de todos os alunos
+## ativos de alunos com no minímo de 1 período integralizado.
+@routes.route("/api/estatisticas/velocidade_media")
+@cross_origin()
+def get_average_speed():
+  return curso.get_average_speed()
