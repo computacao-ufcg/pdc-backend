@@ -393,7 +393,7 @@ class Curso():
 
   
   # Função responsável por calcular a velocidade média dos alunos ativos do curso de Computação
-  ## na UFCG.
+  ## na UFCG com no mínimo 1 período integralizado.
   def get_average_speed(self):
     query = 'SELECT matricula, cred_obrig_int, cred_opt_int, per_int \
       FROM "DiscenteVinculo" \
@@ -434,4 +434,40 @@ class Curso():
       qtd_ativos=qtd_ativos,
       velocidade_media_ativos=round(acumulador_velocidades / qtd_ativos, 2),
     )
+
+  # Função que calcula a exequibilidade de todos os alunos ativos do curso de Computação na
+  ## UFCG e que possuem no mínimo 1 período integralizado e no máximo 14 períodos.
+  def get_practicability(self):
+    query = 'SELECT matricula, cred_obrig_int, cred_opt_int, per_int \
+      FROM "DiscenteVinculo" \
+      WHERE id_curso = ' + self.id_computacao + ' \
+      AND id_situacao = ' + self.id_ativo + ' \
+      AND id_situacao_vinculo = ' + self.id_regular + ' \
+      AND per_int > 0 \
+      AND per_int < ' + str(constants.PERIODOS_MAXIMO)
+
+    result = self.connection.select(query)
+
+    alunos_exequibilidades = []
+    for registro in result:
+      matricula = registro[0]
+      cred_obrig = registro[1]
+      cred_opt = registro[2]
+
+      if(cred_obrig == None):
+        cred_obrig = 0
+      if(cred_opt == None):
+        cred_opt = 0
+
+      creditos_totais = cred_obrig + cred_opt
+      periodos_integralizados = registro[3]
+
+      exequibilidade = (constants.TOTAL_CREDITOS - creditos_totais) / \
+        ((constants.PERIODOS_MAXIMO - 1 - periodos_integralizados) * constants.CREDITOS_MAXIMO + constants.CREDITOS_CONCLUINTE)
+
+      alunos_exequibilidades.append({
+        "matricula": matricula,
+        "exequibilidade": round(exequibilidade, 2)
+      })
     
+    return jsonify(alunos_exequibilidades)
