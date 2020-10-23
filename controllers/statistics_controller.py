@@ -69,8 +69,15 @@ def export_to_csv_escaped():
   return curso.export_to_csv_escaped(args)
 
 # Rota responsável por retornar as informações de velocidade média de todos os alunos
-## ativos de alunos com no minímo de 1 período integralizado.
+## ativos de alunos com no mínimo de 1 período integralizado.
 @routes.route("/api/estatisticas/velocidade_media")
 @cross_origin()
 def get_average_speed():
   return curso.get_average_speed()
+
+# Rota responsável por retornar as informações de exequibilidade de todos os alunos
+## ativos que possuem no mínimo 1 e no máximo 14 períodos integralizados.
+@routes.route("/api/estatisticas/exequibilidade")
+@cross_origin()
+def get_practicability():
+  return curso.get_practicability()
