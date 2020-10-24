@@ -471,3 +471,42 @@ class Curso():
       })
     
     return jsonify(alunos_exequibilidades)
+
+  
+  # Função que calcula a taxa de sucesso de todos os alunos do curso de Computação na
+  ## UFCG que possuem mais de 0 créditos integralizados.
+  def get_success_rate(self):
+    query = 'SELECT "DiscenteVinculo".matricula, SUM("Disciplina".creditos) AS creditos_totais_matriculados, \
+        "DiscenteVinculo".cred_obrig_int, "DiscenteVinculo".cred_opt_int \
+      FROM "DiscenteVinculo" \
+      INNER JOIN "DiscenteDisciplina" \
+        ON "DiscenteVinculo".matricula = "DiscenteDisciplina".matricula \
+      INNER JOIN "Turma" \
+        ON "DiscenteDisciplina".id_turma = "Turma".id \
+      INNER JOIN "Disciplina" \
+        ON "Turma".id_disciplina = "Disciplina".id \
+      WHERE cred_obrig_int IS NOT NULL \
+      GROUP BY "DiscenteVinculo".matricula, "DiscenteVinculo".cred_obrig_int, "DiscenteVinculo".cred_opt_int \
+      ORDER BY "DiscenteVinculo".matricula'
+
+    result = self.connection.select(query)
+
+    alunos_taxas_de_sucesso = []
+    for registro in result:
+      matricula = registro[0]
+      cred_totais_matriculados = registro[1]
+      cred_obrig_int = registro[2]
+      cred_opt_int = registro[3]
+
+      if(cred_opt_int == None):
+        cred_opt_int = 0
+
+      creditos_totais = cred_obrig_int + cred_opt_int
+      taxa_sucesso = cred_totais_matriculados / creditos_totais
+
+      alunos_taxas_de_sucesso.append({
+        "matricula": matricula,
+        "taxa_de_sucesso": round(taxa_sucesso, 2)
+      })
+
+    return jsonify(alunos_taxas_de_sucesso)

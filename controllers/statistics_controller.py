@@ -81,3 +81,10 @@ def get_average_speed():
 @cross_origin()
 def get_practicability():
   return curso.get_practicability()
+
+# Rota responsável por retornar as informações a cerca da taxa de sucesso de todos os 
+## alunos que possuem mais de 0 créditos integralizados.
+@routes.route("/api/estatisticas/taxa_de_sucesso")
+@cross_origin()
+def get_success_rate():
+  return curso.get_success_rate()
