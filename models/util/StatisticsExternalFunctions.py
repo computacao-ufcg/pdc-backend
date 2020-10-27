@@ -329,3 +329,43 @@ def response_json_to_escaped_route(json):
     json_response.append({ "periodo": i, "tags": json[i] })
   
   return json_response
+
+
+def get_escaped_statistics(joined_results, args):
+  total_evadidos = 0
+  qtd_ingressos_mesmo_curso = 0
+  for periodo in joined_results:
+    for tag in joined_results[periodo]:
+      if (tag == 'tag2'):
+        qtd_ingressos_mesmo_curso += joined_results[periodo][tag]
+    total_evadidos += sum(joined_results[periodo].values())
+  
+  total_evadidos_liquido = total_evadidos - qtd_ingressos_mesmo_curso
+
+  if (len(args) == 1):
+    qtd_ingressos_query = 'SELECT COUNT(*) FROM "DiscenteVinculo" \
+      WHERE periodo_ingresso = \'' + args.get('de') + '\''
+
+    qtd_egressos_query = 'SELECT COUNT(*) FROM "DiscenteVinculo" \
+      WHERE id_situacao_vinculo = 11 AND periodo_situacao = \'' + args.get('de') + '\''
+  
+  elif (len(args) == 2):
+    qtd_ingressos_query = 'SELECT COUNT(*) FROM "DiscenteVinculo" \
+      WHERE periodo_ingresso BETWEEN \'' + args.get('de') + '\' AND \'' + args.get('ate') + '\''
+
+    qtd_egressos_query = 'SELECT COUNT(*) FROM "DiscenteVinculo" \
+      WHERE id_situacao_vinculo = 11 \
+      AND periodo_situacao BETWEEN \'' + args.get('de') + '\' AND \'' + args.get('ate') + '\''
+
+  else:
+    qtd_ingressos_query = 'SELECT COUNT(*) FROM "DiscenteVinculo"'
+
+    qtd_egressos_query = 'SELECT COUNT(*) FROM "DiscenteVinculo" WHERE id_situacao_vinculo = 11'
+  
+  qtd_ingressos = connection.select(qtd_ingressos_query)[0][0]
+  qtd_egressos = connection.select(qtd_egressos_query)[0][0]
+
+  evadidos_ingressos = round(total_evadidos / qtd_ingressos, 2)
+  evadidos_egressos = round(total_evadidos / qtd_egressos, 2)
+
+  return [total_evadidos, total_evadidos_liquido, evadidos_ingressos, evadidos_egressos]
