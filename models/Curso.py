@@ -277,7 +277,7 @@ class Curso():
 
       joined_results = join_results_of_escaped_query(evadidos_por_motivo)
 
-      statistics = get_escaped_statistics(joined_results, args)
+      statistics = get_escaped_statistics(joined_results, args, self.id_computacao, self.id_graduado)
 
       # Caso não hajam resultados para o periodo especificado, é retornado um json com
       ## todas as tags zeradas.
@@ -318,7 +318,7 @@ class Curso():
 
       joined_results = join_results_of_escaped_query(evadidos_por_motivo)
 
-      statistics = get_escaped_statistics(joined_results, args)
+      statistics = get_escaped_statistics(joined_results, args, self.id_computacao, self.id_graduado)
 
       joined_results_all = add_periods_without_escaped(periodo_min=minimo, periodo_max=maximo, dados=joined_results)
 
@@ -346,7 +346,7 @@ class Curso():
 
       joined_results = join_results_of_escaped_query(evadidos_por_motivo)
 
-      statistics = get_escaped_statistics(joined_results, args)
+      statistics = get_escaped_statistics(joined_results, args, self.id_computacao, self.id_graduado)
 
       joined_results_all = add_periods_without_escaped(dados=joined_results)
 
