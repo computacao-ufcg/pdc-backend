@@ -329,3 +329,57 @@ def response_json_to_escaped_route(json):
     json_response.append({ "periodo": i, "tags": json[i] })
   
   return json_response
+
+
+# Função que calcula algumas estatísticas a cerca dos evadidos. Como por exemplo: O total de
+## evadidos, relação do número de evadidos entre os números de egressos e ingressos.
+def get_escaped_statistics(joined_results, args, id_computacao, id_graduado):
+  total_evadidos = 0
+  qtd_ingressos_mesmo_curso = 0
+  for periodo in joined_results:
+    for tag in joined_results[periodo]:
+      # somando apenas os evadidos por reingresso no mesmo curso, ou seja, tag2.
+      if (tag == 'tag2'):
+        qtd_ingressos_mesmo_curso += joined_results[periodo][tag]
+    total_evadidos += sum(joined_results[periodo].values())
+  
+  total_evadidos_liquido = total_evadidos - qtd_ingressos_mesmo_curso
+
+  # para seleção dos dados de apenas um período.
+  if (len(args) == 1):
+    qtd_ingressos_query = 'SELECT COUNT(*) FROM "DiscenteVinculo" \
+      WHERE periodo_ingresso = \'' + args.get('de') + '\' \
+      AND id_curso = ' + str(id_computacao)
+
+    qtd_egressos_query = 'SELECT COUNT(*) FROM "DiscenteVinculo" \
+      WHERE id_situacao_vinculo = ' + str(id_graduado) + ' \
+      AND periodo_situacao = \'' + args.get('de') + '\' \
+      AND id_curso = ' + str(id_computacao)
+  
+  # para seleção dos dados de um intervalo de períodos informado.
+  elif (len(args) == 2):
+    qtd_ingressos_query = 'SELECT COUNT(*) FROM "DiscenteVinculo" \
+      WHERE periodo_ingresso BETWEEN \'' + args.get('de') + '\' AND \'' + args.get('ate') + '\' \
+      AND id_curso = ' + str(id_computacao)
+
+    qtd_egressos_query = 'SELECT COUNT(*) FROM "DiscenteVinculo" \
+      WHERE id_situacao_vinculo = ' + str(id_graduado) + ' \
+      AND periodo_situacao BETWEEN \'' + args.get('de') + '\' AND \'' + args.get('ate') + '\' \
+      AND id_curso = ' + str(id_computacao)
+
+  # para seleção dos dados de todos os períodos.
+  else:
+    qtd_ingressos_query = 'SELECT COUNT(*) FROM "DiscenteVinculo" \
+      WHERE id_curso = ' + str(id_computacao)
+
+    qtd_egressos_query = 'SELECT COUNT(*) FROM "DiscenteVinculo" \
+      WHERE id_situacao_vinculo = ' + str(id_graduado) + ' \
+      AND id_curso = ' + str(id_computacao)
+  
+  qtd_ingressos = connection.select(qtd_ingressos_query)[0][0]
+  qtd_egressos = connection.select(qtd_egressos_query)[0][0]
+
+  evadidos_ingressos = round(total_evadidos / qtd_ingressos, 2)
+  evadidos_egressos = round(total_evadidos / qtd_egressos, 2)
+
+  return [total_evadidos, total_evadidos_liquido, evadidos_ingressos, evadidos_egressos]

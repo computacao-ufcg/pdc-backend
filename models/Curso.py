@@ -10,7 +10,8 @@ from StatisticsExternalFunctions import (response_json_to_active_route, get_perc
   response_json_to_csv_actives_export, get_statistics, response_json_to_graduates_route,
   process_query_of_one_period, join_results_of_escaped_query, fill_tag_list_with_zeros,
   response_json_to_escaped_route, process_query_of_escaped, process_query_of_interval_of_the_periods,
-  response_json_to_csv_escaped_export, add_periods_without_escaped, response_json_to_csv_graduates_export)
+  response_json_to_csv_escaped_export, add_periods_without_escaped, response_json_to_csv_graduates_export,
+  get_escaped_statistics)
 
 class Curso():
 
@@ -276,6 +277,8 @@ class Curso():
 
       joined_results = join_results_of_escaped_query(evadidos_por_motivo)
 
+      statistics = get_escaped_statistics(joined_results, args, self.id_computacao, self.id_graduado)
+
       # Caso não hajam resultados para o periodo especificado, é retornado um json com
       ## todas as tags zeradas.
       if (len(joined_results) == 0):
@@ -288,7 +291,13 @@ class Curso():
 
       json_return = response_json_to_escaped_route(joined_results_with_zeros)
 
-      return jsonify(json_return)
+      return jsonify(
+        dados=json_return,
+        total_evadidos_bruto=statistics[0],
+        total_evadidos_liquido=statistics[1],
+        evadidos_ingressos=statistics[2],
+        evadidos_egressos=statistics[3]
+      )
 
     # Verifica se foram passados dois parâmetro na rota, que no caso, é o período de início
     ## e fim para a consulta nesse intervalo sobre o número de evadidos por período por todos
@@ -309,6 +318,8 @@ class Curso():
 
       joined_results = join_results_of_escaped_query(evadidos_por_motivo)
 
+      statistics = get_escaped_statistics(joined_results, args, self.id_computacao, self.id_graduado)
+
       joined_results_all = add_periods_without_escaped(periodo_min=minimo, periodo_max=maximo, dados=joined_results)
 
       joined_results_with_zeros = fill_tag_list_with_zeros(joined_results_all)
@@ -317,7 +328,13 @@ class Curso():
 
       sorted_json = sorted(json_return, key=lambda k: k['periodo'])
 
-      return jsonify(sorted_json)
+      return jsonify(
+        dados=sorted_json, 
+        total_evadidos_bruto=statistics[0],
+        total_evadidos_liquido=statistics[1],
+        evadidos_ingressos=statistics[2],
+        evadidos_egressos=statistics[3]
+      )
       
     # Caso não seja passado parâmetro algum na rota, são trazidos os dados de todos os períodos
     ## já cadastrados
@@ -329,6 +346,8 @@ class Curso():
 
       joined_results = join_results_of_escaped_query(evadidos_por_motivo)
 
+      statistics = get_escaped_statistics(joined_results, args, self.id_computacao, self.id_graduado)
+
       joined_results_all = add_periods_without_escaped(dados=joined_results)
 
       joined_results_with_zeros = fill_tag_list_with_zeros(joined_results_all)
@@ -337,7 +356,13 @@ class Curso():
 
       sorted_json = sorted(json_return, key=lambda k: k['periodo'])
       
-      return jsonify(sorted_json)  
+      return jsonify(
+        dados=sorted_json, 
+        total_evadidos_bruto=statistics[0],
+        total_evadidos_liquido=statistics[1],
+        evadidos_ingressos=statistics[2],
+        evadidos_egressos=statistics[3]
+      )  
 
   
   # Função responsável por buscar os dados para a geração do arquivo .csv de alunos evadidos.
