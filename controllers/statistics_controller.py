@@ -1,13 +1,16 @@
 # coding: utf-8
 import sys
-from flask import request
+from flask import request, jsonify
 from flask_cors import cross_origin
 from . import routes
 sys.path.append("./models")
 from Curso import Curso
+from Disciplina import Disciplina
 
 # Instância do model Curso que gerencia informações gerais sobre alunos do curso.
 curso = Curso()
+
+disciplina = Disciplina()
 
 # Rota que retorna um json com todos os números de evadidos por período de todos os 
 ## motivos, que podem ter do id 1 ao 9, inclusive.
@@ -88,3 +91,11 @@ def get_practicability():
 @cross_origin()
 def get_success_rate():
   return curso.get_success_rate()
+
+@routes.route("/api/disciplinas")
+@cross_origin()
+def get_rates_of_subjects():
+  
+  disciplina.get_rates_of_subjects()
+
+  return jsonify({"ok": "true"})
