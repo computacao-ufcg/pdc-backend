@@ -95,7 +95,8 @@ def get_success_rate():
 @routes.route("/api/disciplinas")
 @cross_origin()
 def get_rates_of_subjects():
+  args = request.args
   
-  response = disciplina.get_success_rates_of_all_subjects_group()
+  response = disciplina.get_success_rates_of_all_subjects_group(args)
   
   return jsonify(response)
