@@ -96,6 +96,6 @@ def get_success_rate():
 @cross_origin()
 def get_rates_of_subjects():
   
-  disciplina.get_rates_of_subjects()
-
-  return jsonify({"ok": "true"})
+  response = disciplina.get_success_rates_of_all_subjects_group()
+  
+  return jsonify(response)

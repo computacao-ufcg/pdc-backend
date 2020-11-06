@@ -9,7 +9,7 @@ class Disciplina():
   def __init__(self):
     self.connection = Connection()
 
-  def get_rates_of_subjects(self):
+  def get_success_rates_by_subject_group(self, id_tipo_disciplina):
     base_query = 'SELECT "Disciplina".codigo, COUNT("DiscenteDisciplina".*) \
       FROM "DiscenteDisciplina" \
       INNER JOIN "Turma" \
@@ -18,7 +18,7 @@ class Disciplina():
         ON "Turma".id_disciplina = "Disciplina".id \
       INNER JOIN "Curriculo" \
         ON "Disciplina".codigo = "Curriculo".codigo_disciplina \
-      AND "Curriculo".id_tipo_disciplina = 1'
+      AND "Curriculo".id_tipo_disciplina = ' + str(id_tipo_disciplina)
 
     matriculas_totais = base_query + 'GROUP BY "Disciplina".codigo'
  
@@ -34,38 +34,55 @@ class Disciplina():
       success_rate = aprovadas[i][1] / total[i][1]
       success_rates.append(round(success_rate, 2) * 100)
 
-    success_rates.append(100.0)
+    # success_rates.append(100.0)
     success_rates.sort()
 
-    print(success_rates)
-    if(len(success_rates) % 2 != 0):
-      mid = len(success_rates) // 2
-      mid_right = (len(success_rates) - mid) - 1
+    return success_rates
 
-      minimo = success_rates[0]
-      maximo = success_rates[len(success_rates) - 1]
+  def get_success_rates_of_all_subjects_group(self):
+    labels = ['Obrigatórias', 'Optativas gerais', 'Optativas específicas', 'Complementares',
+      'Extracurriculares']
+    success_rates = []
+    for i in range(1, 4):
+      success_rates.append(self.get_success_rates_by_subject_group(i))
 
-      q2 = success_rates[mid]
+    response = []
+    for i in range(len(success_rates)):
+  
+      if(len(success_rates[i]) % 2 != 0 and len(success_rates[i]) > 5):
+        mid = len(success_rates[i]) // 2
+        mid_right = (len(success_rates[i]) - mid) - 1
 
-      q1 = (success_rates[mid // 2] + success_rates[(mid // 2) + 1]) / 2
+        minimo = success_rates[i][0]
+        maximo = success_rates[i][len(success_rates[i]) - 1]
 
-      q3 = (success_rates[mid + (mid_right // 2)] + success_rates[mid + (mid_right // 2) + 1]) / 2
+        q2 = success_rates[i][mid]
 
-    else:
-      mid = (len(success_rates) // 2) - 1
+        q1 = (success_rates[i][mid // 2] + success_rates[i][(mid // 2) + 1]) / 2
 
-      minimo = success_rates[0]
-      maximo = success_rates[len(success_rates) - 1]
+        q3 = (success_rates[i][mid + (mid_right // 2)] + success_rates[i][mid + (mid_right // 2) + 1]) / 2
 
-      q2 = (success_rates[mid] + success_rates[mid + 1]) / 2
+      else:
+        mid = (len(success_rates) // 2) - 1
 
-      print(minimo, maximo)
+        minimo = success_rates[i][0]
+        maximo = success_rates[i][len(success_rates[i]) - 1]
 
-      print(q2)
+        # print(minimo, maximo)
 
+        # print(q2)
       
+      response.append({
+        "group": labels[i],
+        "data": {
+          "min": minimo,
+          "max": maximo,
+          "q1": q1,
+          "q2": q2,
+          "q3": q3,
+          "outliers": [],
+        }
+      })
 
-
-
-
-
+    return response
+      
