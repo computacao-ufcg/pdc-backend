@@ -65,8 +65,54 @@ class Disciplina():
 
     success_rates.sort()
 
-    print(success_rates)
     return success_rates
+
+
+  def get_mid(self, data):
+    size = len(data)
+
+    if (size > 1):
+      if (size % 2 == 0):
+        index = size // 2
+        mid_1 = data[index]
+        mid_2 = data[index - 1]
+        result = (mid_1 + mid_2) / 2
+      else:
+        index = size // 2
+        result = data[index]
+
+    return result
+
+  
+  def get_values_boxplot(self, data):
+    size = len(data)
+    index = size // 2
+    mid_1 = data[index]
+    mid_2 = data[index - 1]
+
+    if (size >= 5):
+      if (size % 2 == 0):
+        q1 = self.get_mid(data[:index-1])
+        q2 = (mid_1 + mid_2) / 2
+        q3 = self.get_mid(data[index+1:size])
+      else:
+        q1 = self.get_mid(data[:index])
+        q2 = data[index]
+        q3 = self.get_mid(data[index+1:size])
+      
+      return [q1, q2, q3]
+    
+    else:
+      return [0, 0, 0]
+  
+
+  def get_outliers(self, data, lim_inf, lim_sup):
+    outliers = []
+    for i in range(len(data)):
+      if (data[i] < lim_inf or data[i] > lim_sup):
+        outliers.append(data[i])
+    
+    return outliers
 
 
   def get_success_rates_of_all_subjects_group(self, args):
@@ -78,39 +124,31 @@ class Disciplina():
 
     response = []
     for i in range(len(success_rates)):
-  
       if(len(success_rates[i]) % 2 != 0 and len(success_rates[i]) > 5):
-        mid = len(success_rates[i]) // 2
-        mid_right = (len(success_rates[i]) - mid) - 1
+        q1, q2, q3 = self.get_values_boxplot(success_rates[i])
 
-        minimo = success_rates[i][0]
-        maximo = success_rates[i][len(success_rates[i]) - 1]
+        lim_inf = max(success_rates[i][0], q1 - (1.5 * (q3 - q1)))
+        lim_sup = min(success_rates[i][len(success_rates[i]) - 1], q3 + (1.5 * (q3 - q1)))
 
-        q2 = success_rates[i][mid]
-
-        q1 = (success_rates[i][mid // 2] + success_rates[i][(mid // 2) + 1]) / 2
-
-        q3 = (success_rates[i][mid + (mid_right // 2)] + success_rates[i][mid + (mid_right // 2) + 1]) / 2
+        outliers = self.get_outliers(success_rates[i], lim_inf, lim_sup)
 
       else:
-        mid = (len(success_rates) // 2) - 1
+        q1, q2, q3 = self.get_values_boxplot(success_rates[i])
 
-        minimo = success_rates[i][0]
-        maximo = success_rates[i][len(success_rates[i]) - 1]
+        lim_inf = max(success_rates[i][0], q1 - (1.5 * (q3 - q1)))
+        lim_sup = min(success_rates[i][len(success_rates[i]) - 1], q3 + (1.5 * (q3 - q1)))
 
-        # print(minimo, maximo)
-
-        # print(q2)
+        outliers = self.get_outliers(success_rates[i], lim_inf, lim_sup)
       
       response.append({
         "group": labels[i],
         "data": {
-          "min": minimo,
-          "max": maximo,
+          "lim_inf": lim_inf,
+          "lim_sup": lim_sup,
           "q1": q1,
           "q2": q2,
           "q3": q3,
-          "outliers": [],
+          "outliers": outliers,
         }
       })
 
