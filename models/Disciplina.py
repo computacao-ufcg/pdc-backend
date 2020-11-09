@@ -10,6 +10,9 @@ class Disciplina():
     self.connection = Connection()
 
 
+  # Calcula as taxas de sucesso por tipo de disciplinas. Onde é passado o tipo da disciplina
+  ## e são retornados os números de matrículas totais e aprovadas, para que sejam calculadas
+  ### as taxas de sucesso de cada uma dessas disciplinas. 
   def get_success_rates_by_subject_group(self, id_tipo_disciplina, args):
 
     base_query = 'SELECT "Disciplina".codigo, COUNT("DiscenteDisciplina".*) \
@@ -25,6 +28,7 @@ class Disciplina():
       AND "DiscenteVinculo".id_curso = 5 \
       AND "Curriculo".id_tipo_disciplina = ' + str(id_tipo_disciplina)
 
+    # caso seja passado apenas o filtro 'de'.
     if (len(args) == 1):
       periodo = args.get('de')
 
@@ -35,6 +39,7 @@ class Disciplina():
         AND "DiscenteDisciplina".id_situacao = 1 \
         GROUP BY "Disciplina".codigo'
 
+    # caso sejam passados os filtros 'de' e 'ate'.
     elif (len(args) == 2):
       minimo = args.get('de')
       maximo = args.get('ate')
@@ -49,6 +54,7 @@ class Disciplina():
         AND "DiscenteDisciplina".id_situacao = 1 \
         GROUP BY "Disciplina".codigo'
 
+    # caso não seja passado filtro algum.
     else:
       matriculas_totais = base_query + 'GROUP BY "Disciplina".codigo'
 
@@ -58,6 +64,7 @@ class Disciplina():
     total = self.connection.select(matriculas_totais)
     aprovadas = self.connection.select(matriculas_aprovadas)
 
+    # calcula a taxa de sucesso para cada uma das disciplinas de um agrupamento.
     success_rates = []
     for i in range(len(total)):
       success_rate = aprovadas[i][1] / total[i][1]
@@ -68,6 +75,8 @@ class Disciplina():
     return success_rates
 
 
+  # Calcula a posição central do array de dados para o boxplot, no que depender se o tamanho
+  ## do array é ímpar ou par.
   def get_mid(self, data):
     size = len(data)
 
@@ -84,6 +93,7 @@ class Disciplina():
     return result
 
   
+  # Calcula os quantis para o boxplot: q1, q2 e q3.
   def get_values_boxplot(self, data):
     size = len(data)
     index = size // 2
@@ -106,6 +116,7 @@ class Disciplina():
       return [0, 0, 0]
   
 
+  # Calcula os pontos fora dos limites superior e inferior do boxplot.
   def get_outliers(self, data, lim_inf, lim_sup):
     outliers = []
     for i in range(len(data)):
@@ -115,6 +126,8 @@ class Disciplina():
     return outliers
 
 
+  # Processa a querie para cada um dos agrupamentos e retorna a resposta json com todas as
+  ## informações para os boxplot's de cada um dos grupos de disciplinas.
   def get_success_rates_of_all_subjects_group(self, args):
     labels = ['Obrigatórias', 'Optativas gerais', 'Optativas específicas', 'Complementares',
       'Extracurriculares']
@@ -124,21 +137,12 @@ class Disciplina():
 
     response = []
     for i in range(len(success_rates)):
-      if(len(success_rates[i]) % 2 != 0 and len(success_rates[i]) > 5):
-        q1, q2, q3 = self.get_values_boxplot(success_rates[i])
+      q1, q2, q3 = self.get_values_boxplot(success_rates[i])
 
-        lim_inf = max(success_rates[i][0], q1 - (1.5 * (q3 - q1)))
-        lim_sup = min(success_rates[i][len(success_rates[i]) - 1], q3 + (1.5 * (q3 - q1)))
+      lim_inf = max(success_rates[i][0], q1 - (1.5 * (q3 - q1)))
+      lim_sup = min(success_rates[i][len(success_rates[i]) - 1], q3 + (1.5 * (q3 - q1)))
 
-        outliers = self.get_outliers(success_rates[i], lim_inf, lim_sup)
-
-      else:
-        q1, q2, q3 = self.get_values_boxplot(success_rates[i])
-
-        lim_inf = max(success_rates[i][0], q1 - (1.5 * (q3 - q1)))
-        lim_sup = min(success_rates[i][len(success_rates[i]) - 1], q3 + (1.5 * (q3 - q1)))
-
-        outliers = self.get_outliers(success_rates[i], lim_inf, lim_sup)
+      outliers = self.get_outliers(success_rates[i], lim_inf, lim_sup)
       
       response.append({
         "group": labels[i],
