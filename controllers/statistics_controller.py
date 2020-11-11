@@ -92,7 +92,7 @@ def get_practicability():
 def get_success_rate():
   return curso.get_success_rate()
 
-@routes.route("/api/disciplinas")
+@routes.route("/api/estatisticas/disciplinas/sumario")
 @cross_origin()
 def get_rates_of_subjects():
   args = request.args
