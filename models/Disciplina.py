@@ -64,11 +64,25 @@ class Disciplina():
     total = self.connection.select(matriculas_totais)
     aprovadas = self.connection.select(matriculas_aprovadas)
 
+    dic_total = {}
+    dic_aprovadas = {}
+
+    for i in range(len(total)):
+      dic_total[total[i][0]] = total[i][1]
+
+    for i in range(len(aprovadas)):
+      dic_aprovadas[aprovadas[i][0]] = aprovadas[i][1]
+
     # calcula a taxa de sucesso para cada uma das disciplinas de um agrupamento.
     success_rates = []
     for i in range(len(total)):
-      success_rate = aprovadas[i][1] / total[i][1]
-      success_rates.append(round(success_rate, 2) * 100)
+      if (total[i][0] in dic_aprovadas and i <= len(aprovadas)-1):
+        success_rate = dic_aprovadas[aprovadas[i][0]] / dic_total[total[i][0]]
+        success_rates.append(round(success_rate * 100, 2) )
+      else:
+        if (i == len(aprovadas)-1):
+          break
+        success_rates.append(0)
 
     success_rates.sort()
 
@@ -121,7 +135,7 @@ class Disciplina():
     outliers = []
     for i in range(len(data)):
       if (data[i] < lim_inf or data[i] > lim_sup):
-        outliers.append(data[i])
+        outliers.append(round(data[i], 2))
     
     return outliers
 
@@ -135,26 +149,41 @@ class Disciplina():
     for i in range(1, 4):
       success_rates.append(self.get_success_rates_by_subject_group(i, args))
 
+    print(success_rates)
     response = []
     for i in range(len(success_rates)):
-      q1, q2, q3 = self.get_values_boxplot(success_rates[i])
-
-      lim_inf = max(success_rates[i][0], q1 - (1.5 * (q3 - q1)))
-      lim_sup = min(success_rates[i][len(success_rates[i]) - 1], q3 + (1.5 * (q3 - q1)))
-
-      outliers = self.get_outliers(success_rates[i], lim_inf, lim_sup)
+      if (len(success_rates[i]) == 0):
+        response.append({
+          "group": labels[i],
+          "data": {
+            "lim_inf": 0,
+            "lim_sup": 0,
+            "q1": 0,
+            "q2": 0,
+            "q3": 0,
+            "outliers": [],
+          }
+        })
       
-      response.append({
-        "group": labels[i],
-        "data": {
-          "lim_inf": lim_inf,
-          "lim_sup": lim_sup,
-          "q1": q1,
-          "q2": q2,
-          "q3": q3,
-          "outliers": outliers,
-        }
-      })
+      else:
+        q1, q2, q3 = self.get_values_boxplot(success_rates[i])
+
+        lim_inf = max(success_rates[i][0], q1 - (1.5 * (q3 - q1)))
+        lim_sup = min(success_rates[i][len(success_rates[i]) - 1], q3 + (1.5 * (q3 - q1)))
+
+        outliers = self.get_outliers(success_rates[i], lim_inf, lim_sup)
+        
+        response.append({
+          "group": labels[i],
+          "data": {
+            "lim_inf": round(lim_inf, 2),
+            "lim_sup": round(lim_sup, 2),
+            "q1": round(q1, 2),
+            "q2": round(q2, 2),
+            "q3": round(q3, 2),
+            "outliers": outliers,
+          }
+        })
 
     return response
       
