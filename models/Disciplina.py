@@ -47,10 +47,10 @@ class Disciplina():
       if (minimo > maximo or minimo == maximo):
         return { "error": "Parameters or invalid request" }, 404
 
-      matriculas_totais = base_query + 'AND "Turma".periodo BETWEEN \'' + str(minimo) + '\' AND \'' + str(maximo) + '\'\' \
+      matriculas_totais = base_query + 'AND "Turma".periodo BETWEEN \'' + str(minimo) + '\' AND \'' + str(maximo) + '\'\
         GROUP BY "Disciplina".codigo'
 
-      matriculas_aprovadas = base_query + 'AND "Turma".periodo BETWEEN \'' + str(minimo) + '\' AND \'' + str(maximo) + '\'\' \
+      matriculas_aprovadas = base_query + 'AND "Turma".periodo BETWEEN \'' + str(minimo) + '\' AND \'' + str(maximo) + '\'\
         AND "DiscenteDisciplina".id_situacao = 1 \
         GROUP BY "Disciplina".codigo'
 
@@ -63,30 +63,34 @@ class Disciplina():
 
     total = self.connection.select(matriculas_totais)
     aprovadas = self.connection.select(matriculas_aprovadas)
+    
+    if(total is None or aprovadas is None):
+      return []
 
-    dic_total = {}
-    dic_aprovadas = {}
+    else:
+      dic_total = {}
+      dic_aprovadas = {}
 
-    for i in range(len(total)):
-      dic_total[total[i][0]] = total[i][1]
+      for i in range(len(total)):
+        dic_total[total[i][0]] = total[i][1]
 
-    for i in range(len(aprovadas)):
-      dic_aprovadas[aprovadas[i][0]] = aprovadas[i][1]
+      for i in range(len(aprovadas)):
+        dic_aprovadas[aprovadas[i][0]] = aprovadas[i][1]
 
-    # calcula a taxa de sucesso para cada uma das disciplinas de um agrupamento.
-    success_rates = []
-    for i in range(len(total)):
-      if (total[i][0] in dic_aprovadas and i <= len(aprovadas)-1):
-        success_rate = dic_aprovadas[aprovadas[i][0]] / dic_total[total[i][0]]
-        success_rates.append(round(success_rate * 100, 2) )
-      else:
-        if (i == len(aprovadas)-1):
-          break
-        success_rates.append(0)
+      # calcula a taxa de sucesso para cada uma das disciplinas de um agrupamento.
+      success_rates = []
+      for i in range(len(total)):
+        if (total[i][0] in dic_aprovadas and i <= len(aprovadas)-1):
+          success_rate = dic_aprovadas[aprovadas[i][0]] / dic_total[total[i][0]]
+          success_rates.append(round(success_rate * 100, 2) )
+        else:
+          if (i == len(aprovadas)-1):
+            break
+          success_rates.append(0)
 
-    success_rates.sort()
+      success_rates.sort()
 
-    return success_rates
+      return success_rates
 
 
   # Calcula a posição central do array de dados para o boxplot, no que depender se o tamanho
@@ -149,7 +153,6 @@ class Disciplina():
     for i in range(1, 4):
       success_rates.append(self.get_success_rates_by_subject_group(i, args))
 
-    print(success_rates)
     response = []
     for i in range(len(success_rates)):
       if (len(success_rates[i]) == 0):
