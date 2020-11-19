@@ -99,7 +99,7 @@ def get_rates_of_subjects():
   
   response = disciplina.get_success_rates_of_all_subjects_group(args)
   
-  return jsonify(response)
+  return response
 
 @routes.route("/api/estatisticas/metricas")
 def get_metrics():

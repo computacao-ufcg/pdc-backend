@@ -143,12 +143,27 @@ class Disciplina():
     
     return outliers
 
+  
+  # Obtém uma lista dos períodos para os labels do Slider no frontend.
+  def get_periods(self):
+    periodos = 'SELECT DISTINCT "Turma".periodo FROM "Turma" \
+      ORDER BY "Turma".periodo'
+
+    periodos = self.connection.select(periodos)
+
+    lista_periodos = []
+    for i in range(len(periodos)-1):
+      lista_periodos.append(periodos[i][0])
+    
+    return lista_periodos
+
 
   # Processa a querie para cada um dos agrupamentos e retorna a resposta json com todas as
   ## informações para os boxplot's de cada um dos grupos de disciplinas.
   def get_success_rates_of_all_subjects_group(self, args):
     labels = ['Obrigatórias', 'Optativas gerais', 'Optativas específicas', 'Complementares',
       'Extracurriculares']
+
     success_rates = []
     for i in range(1, 4):
       success_rates.append(self.get_success_rates_by_subject_group(i, args))
@@ -188,5 +203,16 @@ class Disciplina():
           }
         })
 
-    return response
+    if (len(args) == 0):
+      periodos = self.get_periods()
+
+      return jsonify(
+        dados=response,
+        periodos=periodos
+      )
+
+    else:
+      return jsonify(
+        response
+      )
       
