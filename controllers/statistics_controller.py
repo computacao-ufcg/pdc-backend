@@ -105,5 +105,7 @@ def get_rates_of_subjects():
 def get_metrics():
   args = request.args
 
+  response = disciplina.get_metrics(args)
+
   return jsonify({"ok": "true"})
 

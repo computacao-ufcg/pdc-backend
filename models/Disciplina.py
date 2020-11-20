@@ -215,4 +215,30 @@ class Disciplina():
       return jsonify(
         response
       )
-      
+
+
+  def get_class_overview(self, subject_code):
+    base_query = 'SELECT "Turma".periodo, "DiscenteDisciplina".id_turma, COUNT("DiscenteDisciplina".*) \
+      FROM "DiscenteDisciplina" \
+      INNER JOIN "DiscenteVinculo" \
+        ON "DiscenteDisciplina".matricula = "DiscenteVinculo".matricula \
+      INNER JOIN "Turma" \
+        ON "DiscenteDisciplina".id_turma = "Turma".id \
+      INNER JOIN "Disciplina" \
+        ON "Turma".id_disciplina = "Disciplina".id \
+      AND "Disciplina".codigo = \'' + subject_code + '\' \
+      GROUP BY "DiscenteDisciplina".id_turma, "Turma".periodo'
+
+    result = self.connection.select(base_query)
+
+    print(result)
+
+    return result
+  
+
+  def get_metrics(self, args):
+    subject_code = args.get('subject')
+    metric_value = args.get('metric')
+
+    if (metric_value == 'classOverview'):
+      result = self.get_class_overview(subject_code)
