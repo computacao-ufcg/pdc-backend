@@ -44,7 +44,7 @@ class Disciplina():
       minimo = args.get('de')
       maximo = args.get('ate')
 
-      if (minimo > maximo or minimo == maximo):
+      if (minimo > maximo):
         return { "error": "Parameters or invalid request" }, 404
 
       matriculas_totais = base_query + 'AND "Turma".periodo BETWEEN \'' + str(minimo) + '\' AND \'' + str(maximo) + '\'\
