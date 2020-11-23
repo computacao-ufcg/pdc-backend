@@ -348,23 +348,23 @@ def get_escaped_statistics(joined_results, args, id_computacao, id_graduado):
   # para seleção dos dados de apenas um período.
   if (len(args) == 1):
     qtd_ingressos_query = 'SELECT COUNT(*) FROM "DiscenteVinculo" \
-      WHERE periodo_ingresso = \'' + args.get('de') + '\' \
+      WHERE periodo_ingresso = \'' + args.get('from') + '\' \
       AND id_curso = ' + str(id_computacao)
 
     qtd_egressos_query = 'SELECT COUNT(*) FROM "DiscenteVinculo" \
       WHERE id_situacao_vinculo = ' + str(id_graduado) + ' \
-      AND periodo_situacao = \'' + args.get('de') + '\' \
+      AND periodo_situacao = \'' + args.get('from') + '\' \
       AND id_curso = ' + str(id_computacao)
   
   # para seleção dos dados de um intervalo de períodos informado.
   elif (len(args) == 2):
     qtd_ingressos_query = 'SELECT COUNT(*) FROM "DiscenteVinculo" \
-      WHERE periodo_ingresso BETWEEN \'' + args.get('de') + '\' AND \'' + args.get('ate') + '\' \
+      WHERE periodo_ingresso BETWEEN \'' + args.get('from') + '\' AND \'' + args.get('to') + '\' \
       AND id_curso = ' + str(id_computacao)
 
     qtd_egressos_query = 'SELECT COUNT(*) FROM "DiscenteVinculo" \
       WHERE id_situacao_vinculo = ' + str(id_graduado) + ' \
-      AND periodo_situacao BETWEEN \'' + args.get('de') + '\' AND \'' + args.get('ate') + '\' \
+      AND periodo_situacao BETWEEN \'' + args.get('from') + '\' AND \'' + args.get('to') + '\' \
       AND id_curso = ' + str(id_computacao)
 
   # para seleção dos dados de todos os períodos.

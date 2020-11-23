@@ -50,7 +50,7 @@ class Curso():
     
 
   def get_period(self, args):
-      periodo = args.get('de')
+      periodo = args.get('from')
 
       result = 'AND "DiscenteVinculo".periodo_ingresso=\'' + str(periodo) + '\''
       return result
@@ -75,8 +75,8 @@ class Curso():
       base_query += self.get_period(args)
 
     elif (len(args) == 2):
-      minimo = args.get('de')
-      maximo = args.get('ate')
+      minimo = args.get('from')
+      maximo = args.get('to')
 
       # Caso o periodo minimo do intervalo seja maior que o maximo, retorna
       ## uma mensagem de erro com código 404 not found.
@@ -123,8 +123,8 @@ class Curso():
       base_query += self.get_period(args)
 
     elif (len(args) == 2):
-      minimo = args.get('de')
-      maximo = args.get('ate')
+      minimo = args.get('from')
+      maximo = args.get('to')
 
       # Caso o periodo minimo do intervalo seja maior que o maximo, retorna
       ## uma mensagem de erro com código 404 not found.
@@ -158,7 +158,7 @@ class Curso():
     # Para rotas do tipo /api/estatisticas/egressos?de=2019.2, por exemplo.
     ## Retorna o número de egressos que o período informado na rota obteve.
     if (len(args) == 1):
-      periodo = args.get('de')
+      periodo = args.get('from')
 
       base_query += 'AND periodo_situacao=\'' + str(periodo) + '\' \
         GROUP BY periodo_situacao \
@@ -180,8 +180,8 @@ class Curso():
     ## retornam o número de egressos por período na faixa que foi especificada na rota, além
     ### de suas estatísticas.
     elif (len(args) == 2):
-      minimo = args.get('de')
-      maximo = args.get('ate')
+      minimo = args.get('from')
+      maximo = args.get('to')
 
       # Caso o periodo minimo do intervalo seja maior que o maximo ou então igual, retorna
       ## uma mensagem de erro com código 404 not found.
@@ -236,14 +236,14 @@ class Curso():
       AND id_situacao_vinculo = ' + self.id_graduado
 
     if (len(args) == 1):
-      periodo = args.get('de')
+      periodo = args.get('from')
 
       base_query += 'AND periodo_situacao=\'' + str(periodo) + '\' \
         ORDER BY periodo_situacao'
 
     elif (len(args) == 2):
-      minimo = args.get('de')
-      maximo = args.get('ate')
+      minimo = args.get('from')
+      maximo = args.get('to')
 
       # Caso o periodo minimo do intervalo seja maior que o maximo ou então igual, retorna
       ## uma mensagem de erro com código 404 not found.
@@ -266,7 +266,7 @@ class Curso():
     # Verifica se foi passado somente um parâmetro na rota, que no caso, é o período
     ## a ser consultado o número de evadidos.
     if (len(args) == 1):
-      periodo = args.get('de')
+      periodo = args.get('from')
 
       # Processando queries com os ID's de 1 a 9 e armazenando todos os resultados em uma lista,
       ## para posteriormente fazer um merge dos resultados.
@@ -303,8 +303,8 @@ class Curso():
     ## e fim para a consulta nesse intervalo sobre o número de evadidos por período por todos
     ### os tipos de evasão.
     elif (len(args) == 2):
-      minimo = args.get('de')
-      maximo = args.get('ate')
+      minimo = args.get('from')
+      maximo = args.get('to')
 
       # Caso o periodo minimo do intervalo seja maior que o maximo ou então igual, retorna
       ## uma mensagem de erro com código 404 not found.
@@ -392,14 +392,14 @@ class Curso():
       AND id_situacao_vinculo <> ' + self.id_regular
 
     if (len(args) == 1):
-      periodo = args.get('de')
+      periodo = args.get('from')
 
       base_query += 'AND periodo_situacao=\'' + str(periodo) + '\' \
         ORDER BY id_situacao_vinculo' 
     
     elif (len(args) == 2):
-      minimo = args.get('de')
-      maximo = args.get('ate')
+      minimo = args.get('from')
+      maximo = args.get('to')
 
       # Caso o periodo minimo do intervalo seja maior que o maximo ou então igual, retorna
       ## uma mensagem de erro com código 404 not found.
@@ -527,7 +527,10 @@ class Curso():
         cred_opt_int = 0
 
       creditos_totais = cred_obrig_int + cred_opt_int
-      taxa_sucesso = cred_totais_matriculados / creditos_totais
+      if (creditos_totais > 0):
+        taxa_sucesso = cred_totais_matriculados / creditos_totais
+      else:
+        taxa_sucesso = 0
 
       alunos_taxas_de_sucesso.append({
         "matricula": matricula,
