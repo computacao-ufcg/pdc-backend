@@ -32,10 +32,10 @@ def response_json_to_active_route(dados):
     cred_comp_int = get_percent(cred_obrig_int, cred_opt_int, cred_comp_int)
     
     json_return.append({ 
-      "matricula": registro[0], 
-      "periodo_ingresso": registro[5],
-      "periodos_integralizados": periodos_integralizados, 
-      "porcentagem_concluida": round(cred_comp_int, 2)
+      "enrollment": registro[0], 
+      "admission_period": registro[5],
+      "paid-in_periods": periodos_integralizados, 
+      "percentage_completed": round(cred_comp_int, 2)
     })
 
   return jsonify(json_return)
@@ -65,23 +65,23 @@ def response_json_to_csv_actives_export(dados):
   
   for registro in dados:
     json_return.append({
-      "matricula": registro[0],
-      "periodo_ingresso": registro[1],
-      "periodos_integralizados": registro[2],
-      "cred_obrig_int": registro[3],
-      "cred_opt_int": registro[4],
-      "cred_comp_int": registro[5],
-      "cota": registro[6],
-      "genero": registro[7],
-      "estado_civil": registro[8],
-      "curriculo": registro[9],
+      "enrollment": registro[0],
+      "admission_period": registro[1],
+      "paid-in_periods": registro[2],
+      "mandatory_credits_paid-in": registro[3],
+      "optional_credits_paid-in": registro[4],
+      "complementary_credits_paid": registro[5],
+      "quota": registro[6],
+      "genre": registro[7],
+      "marital_status": registro[8],
+      "curriculum": registro[9],
       "cra": registro[10],
       "mc": registro[11],
       "iea": registro[12],
-      "trancamentos_totais": registro[13],
-      "matriculas_institucionais": registro[14],
-      "mobilidade_estudantil": registro[15],
-      "media_geral_ingresso": registro[16]
+      "total_locks": registro[13],
+      "institutional_enrollments": registro[14],
+      "student_mobility": registro[15],
+      "overall_average_ticket": registro[16]
     })
   
   return jsonify(json_return)
@@ -94,23 +94,23 @@ def response_json_to_csv_graduates_export(dados):
   
   for registro in dados:
     json_return.append({
-      "matricula": registro[0],
-      "periodo_conclusao": registro[1],
-      "periodos_integralizados": registro[2],
-      "cred_obrig_int": registro[3],
-      "cred_opt_int": registro[4],
-      "cred_comp_int": registro[5],
-      "cota": registro[6],
-      "genero": registro[7],
-      "estado_civil": registro[8],
-      "curriculo": registro[9],
+      "enrollment": registro[0],
+      "completion_period": registro[1],
+      "paid-in_periods": registro[2],
+      "mandatory_credits_paid-in": registro[3],
+      "optional_credits_paid-in": registro[4],
+      "complementary_credits_paid": registro[5],
+      "quota": registro[6],
+      "genre": registro[7],
+      "marital_status": registro[8],
+      "curriculum": registro[9],
       "cra": registro[10],
       "mc": registro[11],
       "iea": registro[12],
-      "trancamentos_totais": registro[13],
-      "matriculas_institucionais": registro[14],
-      "mobilidade_estudantil": registro[15],
-      "media_geral_ingresso": registro[16]
+      "total_locks": registro[13],
+      "institutional_enrollments": registro[14],
+      "student_mobility": registro[15],
+      "overall_average_ticket": registro[16]
     })
   
   return jsonify(json_return)
@@ -123,24 +123,24 @@ def response_json_to_csv_escaped_export(dados):
   
   for registro in dados:
     json_return.append({
-      "matricula": registro[0],
-      "periodo_evasao": registro[1],
-      "motivo_evasao": registro[2],
-      "periodos_integralizados": registro[3],
-      "cred_obrig_int": registro[4],
-      "cred_opt_int": registro[5],
-      "cred_comp_int": registro[6],
-      "cota": registro[7],
-      "genero": registro[8],
-      "estado_civil": registro[9],
-      "curriculo": registro[10],
+      "enrollment": registro[0],
+      "evasion_period": registro[1],
+      "evasion_reason": registro[2],
+      "paid-in_periods": registro[3],
+      "mandatory_credits_paid-in": registro[4],
+      "optional_credits_paid-in": registro[5],
+      "complementary_credits_paid": registro[6],
+      "quota": registro[7],
+      "genre": registro[8],
+      "marital_status": registro[9],
+      "curriculum": registro[10],
       "cra": registro[11],
       "mc": registro[12],
       "iea": registro[13],
-      "trancamentos_totais": registro[14],
-      "matriculas_institucionais": registro[15],
-      "mobilidade_estudantil": registro[16],
-      "media_geral_ingresso": registro[17]
+      "total_locks": registro[14],
+      "institutional_enrollments": registro[15],
+      "student_mobility": registro[16],
+      "overall_average_ticket": registro[17]
     })
   
   return jsonify(json_return)
@@ -184,9 +184,9 @@ def response_json_to_graduates_route(periods):
   response = []
   for i in range(len(periods)):
     response.append({
-      "periodo_conclusao": periods[i][0], 
-      "qtd_egressos": periods[i][1],
-      "cra_medio": round(periods[i][2], 2),
+      "completion_period": periods[i][0], 
+      "amount_graduates": periods[i][1],
+      "avg_cra": round(periods[i][2], 2),
     })
 
   return response
@@ -210,7 +210,7 @@ def process_query_of_one_period(id_curso, id, periodo):
   
   retorno = []
   for i in range(len(result)):
-    retorno.append({"periodo": result[i][0], "tag"+str(id): result[i][1]})
+    retorno.append({"period": result[i][0], "tag"+str(id): result[i][1]})
 
   return retorno
 
@@ -233,7 +233,7 @@ def process_query_of_interval_of_the_periods(id_curso, id, minimo, maximo):
   
   retorno = []
   for i in range(len(result)):
-    retorno.append({"periodo": result[i][0], "tag"+str(id): result[i][1]})
+    retorno.append({"period": result[i][0], "tag"+str(id): result[i][1]})
 
   return retorno
 
@@ -255,7 +255,7 @@ def process_query_of_escaped(id_curso, id):
   
   retorno = []
   for i in range(len(result)):
-    retorno.append({"periodo": result[i][0], "tag"+str(id): result[i][1]})
+    retorno.append({"period": result[i][0], "tag"+str(id): result[i][1]})
 
   return retorno
 
@@ -268,16 +268,16 @@ def join_results_of_escaped_query(results):
   dic_periodos = {}
   for i in range(len(results)):
     for j in range(len(results[i])):
-      if (results[i][j]['periodo'] in dic_periodos):
+      if (results[i][j]['period'] in dic_periodos):
         if (i == 9):
-          dic_periodos[str(results[i][j]['periodo'])]['tag'+str(i+4)] = results[i][j]['tag'+str(i+4)]
+          dic_periodos[str(results[i][j]['period'])]['tag'+str(i+4)] = results[i][j]['tag'+str(i+4)]
         else:
-          dic_periodos[str(results[i][j]['periodo'])]['tag'+str(i+1)] = results[i][j]['tag'+str(i+1)]
+          dic_periodos[str(results[i][j]['period'])]['tag'+str(i+1)] = results[i][j]['tag'+str(i+1)]
       else:
         if (i == 9):
-          dic_periodos[str(results[i][j]['periodo'])] = { 'tag'+str(i+4): results[i][j]['tag'+str(i+4)] }
+          dic_periodos[str(results[i][j]['period'])] = { 'tag'+str(i+4): results[i][j]['tag'+str(i+4)] }
         else:
-          dic_periodos[str(results[i][j]['periodo'])] = { 'tag'+str(i+1): results[i][j]['tag'+str(i+1)] }
+          dic_periodos[str(results[i][j]['period'])] = { 'tag'+str(i+1): results[i][j]['tag'+str(i+1)] }
 
   return dic_periodos
 
@@ -326,7 +326,7 @@ def fill_tag_list_with_zeros(json):
 def response_json_to_escaped_route(json):
   json_response = []
   for i in json:
-    json_response.append({ "periodo": i, "tags": json[i] })
+    json_response.append({ "period": i, "tags": json[i] })
   
   return json_response
 
