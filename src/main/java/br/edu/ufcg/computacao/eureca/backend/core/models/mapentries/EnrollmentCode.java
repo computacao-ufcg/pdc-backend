@@ -1,13 +1,13 @@
 package br.edu.ufcg.computacao.eureca.backend.core.models.mapentries;
 
-public class EnrolmentCode extends EurecaMapKey {
+public class EnrollmentCode extends EurecaMapKey {
     int enrollment_id;
 
-    public EnrolmentCode(int enrollment_id) {
+    public EnrollmentCode(int enrollment_id) {
         this.enrollment_id = enrollment_id;
     }
 
-    public EnrolmentCode() {}
+    public EnrollmentCode() {}
 
     public int getEnrollment_id() {
         return enrollment_id;
@@ -27,7 +27,7 @@ public class EnrolmentCode extends EurecaMapKey {
         if (this == obj) return true;
         if (obj == null) return false;
         if (getClass() != obj.getClass()) return false;
-        EnrolmentCode other = (EnrolmentCode) obj;
+        EnrollmentCode other = (EnrollmentCode) obj;
         if (this.enrollment_id != other.enrollment_id) return false;
         return true;
     }

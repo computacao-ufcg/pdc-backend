@@ -4,10 +4,7 @@ import br.edu.ufcg.computacao.eureca.as.core.AuthenticationUtil;
 import br.edu.ufcg.computacao.eureca.as.core.models.SystemUser;
 import br.edu.ufcg.computacao.eureca.backend.api.http.response.*;
 import br.edu.ufcg.computacao.eureca.backend.constants.*;
-import br.edu.ufcg.computacao.eureca.backend.core.holders.EurecaAsPublicKeyHolder;
-import br.edu.ufcg.computacao.eureca.backend.core.holders.MapsHolder;
-import br.edu.ufcg.computacao.eureca.backend.core.holders.PropertiesHolder;
-import br.edu.ufcg.computacao.eureca.backend.core.holders.StatisticsHolder;
+import br.edu.ufcg.computacao.eureca.backend.core.holders.*;
 import br.edu.ufcg.computacao.eureca.backend.core.models.abstractions.Student;
 import br.edu.ufcg.computacao.eureca.backend.core.models.mapentries.EurecaOperation;
 import br.edu.ufcg.computacao.eureca.backend.core.models.mapentries.IdCode;
@@ -24,6 +21,7 @@ import java.security.GeneralSecurityException;
 import java.security.interfaces.RSAPublicKey;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 
 public class ApplicationFacade {
@@ -51,7 +49,7 @@ public class ApplicationFacade {
     public Collection<ActiveSummaryResponse> getActives(String token, String from, String to) throws EurecaException {
         authenticateAndAuthorize(token, EurecaOperation.GET_ACTIVES);
         Collection<ActiveSummaryResponse> activeStudentsSummary = new ArrayList<>();
-        Collection<Student> actives = StatisticsHolder.getInstance().getAllActives();
+        Collection<Student> actives = StudentStatisticsHolder.getInstance().getAllActives();
         actives.forEach(item -> {
             String admission = item.getAcademicData().getAdmission_term();
             if (admission != null && admission.compareTo(from) >= 0 && admission.compareTo(to) <= 0) {
@@ -69,7 +67,7 @@ public class ApplicationFacade {
     public Collection<ActiveDataResponse> getActivesCSV(String token, String from, String to) throws EurecaException {
         authenticateAndAuthorize(token, EurecaOperation.GET_ACTIVES);
         Collection<ActiveDataResponse> activeStudentsData = new ArrayList<>();
-        Collection<Student> actives = StatisticsHolder.getInstance().getAllActives();
+        Collection<Student> actives = StudentStatisticsHolder.getInstance().getAllActives();
         actives.forEach(item -> {
             try {
                 String admission = item.getAcademicData().getAdmission_term();
@@ -131,7 +129,7 @@ public class ApplicationFacade {
 
     private Collection<AlumniDataResponse> getAlumniSummaryPerTerm(String from, String to) {
         Collection<AlumniDataResponse> terms = new ArrayList<>();
-        Map<String, Collection<String>> map = StatisticsHolder.getInstance().getAlumniByGraduationTerm();
+        Map<String, Collection<String>> map = StudentStatisticsHolder.getInstance().getAlumniByGraduationTerm();
         for (Map.Entry<String, Collection<String>> entry : map.entrySet()) {
             String term = entry.getKey();
             if (term.compareTo(from) >= 0 && term.compareTo(to) <= 0) {
@@ -139,7 +137,7 @@ public class ApplicationFacade {
                 int termAlumniCount = cpfs.size();
                 double termAccumulatedGPA = 0;
                 for (String cpf : cpfs) {
-                    Student alumnus = StatisticsHolder.getInstance().getAlumni().get(cpf);
+                    Student alumnus = StudentStatisticsHolder.getInstance().getAlumni().get(cpf);
                     termAccumulatedGPA += alumnus.getAcademicData().getGpa();
                 }
                 AlumniDataResponse termData = new AlumniDataResponse(termAccumulatedGPA/termAlumniCount, term,
@@ -153,12 +151,12 @@ public class ApplicationFacade {
     public Collection<DropoutSummaryResponse> getDropouts(String token, String from, String to) throws EurecaException {
         authenticateAndAuthorize(token, EurecaOperation.GET_DROPOUTS);
         Collection<DropoutSummaryResponse> dropoutSummaryResponses = new ArrayList<>();
-        Map<String, Collection<String>> dropouts = StatisticsHolder.getInstance().getDropoutByLeaveTerm();
+        Map<String, Collection<String>> dropouts = StudentStatisticsHolder.getInstance().getDropoutByLeaveTerm();
         dropouts.forEach((k, v) -> {
             if (k.compareTo(from) >= 0 && k.compareTo(to) <= 0) {
                 int dropoutsCount[] = new int[13];
                 v.forEach(item -> {
-                    Student dropout = StatisticsHolder.getInstance().getDropouts().get(item);
+                    Student dropout = StudentStatisticsHolder.getInstance().getDropouts().get(item);
                     dropoutsCount[dropout.getAcademicData().getDetailed_status_id()-1]++;
                 });
                 DropoutClassification dropoutClassification = new DropoutClassification(dropoutsCount[0],
@@ -173,7 +171,7 @@ public class ApplicationFacade {
     public Collection<DropoutDataResponse> getDropoutsCSV(String token, String from, String to) throws EurecaException {
         authenticateAndAuthorize(token, EurecaOperation.GET_DROPOUTS_CSV);
         Collection<DropoutDataResponse> dropoutDataResponses = new ArrayList<>();
-        Map<String, Student> dropouts = StatisticsHolder.getInstance().getDropouts();
+        Map<String, Student> dropouts = StudentStatisticsHolder.getInstance().getDropouts();
         dropouts.forEach((k, v) -> {
             try {
                 String leaveTerm = v.getAcademicData().getTerm_status();
@@ -205,7 +203,7 @@ public class ApplicationFacade {
     public Collection<AlumnusBasicData> getAlumniBasicData(String token) throws EurecaException {
         authenticateAndAuthorize(token, EurecaOperation.GET_ALUMNI_BASIC_DATA);
         Collection<AlumnusBasicData> alumniBasicData = new ArrayList<>();
-        Map<String, Student> alumni = StatisticsHolder.getInstance().getAlumni();
+        Map<String, Student> alumni = StudentStatisticsHolder.getInstance().getAlumni();
         alumni.forEach((k, v) -> {
             AlumnusBasicData basicData = new AlumnusBasicData(v.getId().getRegistration(), v.getPersonalData().getName(),
                     2, 1, v.getAcademicData().getAdmission_term(),
@@ -213,6 +211,18 @@ public class ApplicationFacade {
             alumniBasicData.add(basicData);
         });
         return alumniBasicData;
+    }
+
+    public Map<String, Collection<SubjectSummaryResponse>> getSubjectSummary(String token, String from, String to) throws EurecaException {
+        authenticateAndAuthorize(token, EurecaOperation.GET_SUBJECT_SUMMARY);
+        Map<String, Collection<SubjectSummaryResponse>> completeMap = SubjectStatisticsHolder.getInstance().getSubjectSummary();
+        Map<String, Collection<SubjectSummaryResponse>> resultMap = new HashMap<>();
+        completeMap.forEach((term, summary) -> {
+            if (term.compareTo(from) >= 0 && term.compareTo(to) <= 0) {
+                resultMap.put(term, summary);
+            }
+        });
+        return resultMap;
     }
 
     public String getPublicKey() throws EurecaException {

@@ -1,12 +1,14 @@
 package br.edu.ufcg.computacao.eureca.backend.core.models.mapentries;
 
 public class SubjectData extends EurecaMapValue {
+    String code;
     int type_id;
     int credits;
     int hours;
     String name;
 
-    public SubjectData(int type_id, int credits, int hours, String name) {
+    public SubjectData(String code, int type_id, int credits, int hours, String name) {
+        this.code = code;
         this.type_id = type_id;
         this.credits = credits;
         this.hours = hours;
@@ -48,8 +50,16 @@ public class SubjectData extends EurecaMapValue {
         this.type_id = type_id;
     }
 
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
+    }
+
     @Override
     public String toString() {
-        return type_id + ":" + credits + ":" + hours + ":" + name;
+        return code + ":" + type_id + ":" + credits + ":" + hours + ":" + name;
     }
 }

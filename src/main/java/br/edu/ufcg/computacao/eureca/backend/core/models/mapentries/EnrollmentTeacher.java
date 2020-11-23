@@ -3,14 +3,14 @@ package br.edu.ufcg.computacao.eureca.backend.core.models.mapentries;
 import java.util.ArrayList;
 import java.util.Collection;
 
-public class EnrolmentTeacher extends EurecaMultivaluedMapValue {
+public class EnrollmentTeacher extends EurecaMultivaluedMapValue {
     Collection<SiapeValue> teachers;
 
-    public EnrolmentTeacher(Collection<SiapeValue> teachers) {
+    public EnrollmentTeacher(Collection<SiapeValue> teachers) {
         this.teachers = teachers;
     }
 
-    public EnrolmentTeacher() {
+    public EnrollmentTeacher() {
         this.teachers = new ArrayList<>();
     }
 

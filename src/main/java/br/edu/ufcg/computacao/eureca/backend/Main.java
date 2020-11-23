@@ -5,6 +5,7 @@ import br.edu.ufcg.computacao.eureca.backend.constants.Messages;
 import br.edu.ufcg.computacao.eureca.backend.core.ApplicationFacade;
 import br.edu.ufcg.computacao.eureca.backend.core.holders.MapsHolder;
 import br.edu.ufcg.computacao.eureca.backend.core.holders.PropertiesHolder;
+import br.edu.ufcg.computacao.eureca.backend.core.holders.SubjectStatisticsHolder;
 import br.edu.ufcg.computacao.eureca.common.util.HomeDir;
 import br.edu.ufcg.computacao.eureca.common.util.ServiceAsymmetricKeysHolder;
 import br.edu.ufcg.computacao.eureca.backend.core.plugins.AuthorizationPlugin;
@@ -39,6 +40,9 @@ public class Main implements ApplicationRunner {
             // Reading input data
             MapsHolder.getInstance().addPropertiesFromMaps(PropertiesHolder.getInstance().getProperties());
             LOGGER.info(Messages.ALL_SET);
+            SubjectStatisticsHolder.getInstance().printEnrollmentData();
+            SubjectStatisticsHolder.getInstance().printSubjectData();
+            System.out.println(MapsHolder.getInstance().getMap("DiscenteTurma").size());
         } catch (Exception e) {
             LOGGER.error(Messages.ERROR_READING_CONFIGURATION_FILE, e);
             System.exit(-1);

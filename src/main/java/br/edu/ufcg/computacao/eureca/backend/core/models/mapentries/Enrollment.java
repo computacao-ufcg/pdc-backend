@@ -1,13 +1,13 @@
 package br.edu.ufcg.computacao.eureca.backend.core.models.mapentries;
 
-public class Enrolment extends EurecaMapValue {
+public class Enrollment extends EurecaMapValue {
     int subject_id;
     int enrollment_id;
     String term;
     int timetable_id;
     int room_id;
 
-    public Enrolment(int subject_id, int enrollment_id, String term, int timetable_id, int room_id) {
+    public Enrollment(int subject_id, int enrollment_id, String term, int timetable_id, int room_id) {
         this.subject_id = subject_id;
         this.enrollment_id = enrollment_id;
         this.term = term;
@@ -15,7 +15,7 @@ public class Enrolment extends EurecaMapValue {
         this.room_id = room_id;
     }
 
-    public Enrolment() {}
+    public Enrollment() {}
 
     public int getSubject_id() {
         return subject_id;

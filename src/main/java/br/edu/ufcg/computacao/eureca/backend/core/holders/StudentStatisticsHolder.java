@@ -12,8 +12,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-public class StatisticsHolder {
-    private static StatisticsHolder instance;
+public class StudentStatisticsHolder {
+    private static StudentStatisticsHolder instance;
     private Map<String, Student> actives;
     private Map<String, Collection<String>> activeByAdmissionTerm;
     private Map<String, Student> alumni;
@@ -25,7 +25,7 @@ public class StatisticsHolder {
     private Map<String, Collection<String>> dropoutByReasonAndAdmissionTerm;
     private Map<String, Collection<String>> dropoutByReasonAndLeaveTerm;
 
-    private StatisticsHolder() {
+    private StudentStatisticsHolder() {
         retrieveActive();
         retrieveAlumni();
         retrieveDropouts();
@@ -155,9 +155,9 @@ public class StatisticsHolder {
         });
     }
 
-    public static synchronized StatisticsHolder getInstance() {
+    public static synchronized StudentStatisticsHolder getInstance() {
         if (instance == null) {
-            instance = new StatisticsHolder();
+            instance = new StudentStatisticsHolder();
         }
         return instance;
     }

@@ -1,6 +1,6 @@
 package br.edu.ufcg.computacao.eureca.backend.core.models.mapentries;
 
-public class StudentSubject extends EurecaMapValue {
+public class StudentPerformance extends EurecaMapValue {
     int absences;
     double grade1;
     double grade2;
@@ -15,9 +15,9 @@ public class StudentSubject extends EurecaMapValue {
     double final_average;
     int status_id;
 
-    public StudentSubject(int absences, double grade1, double grade2, double grade3, double grade4, double grade5,
-                          double grade6, double grade7, double grade8, double partial_average, double final_exam,
-                          double final_average, int status_id) {
+    public StudentPerformance(int absences, double grade1, double grade2, double grade3, double grade4, double grade5,
+                              double grade6, double grade7, double grade8, double partial_average, double final_exam,
+                              double final_average, int status_id) {
         this.absences = absences;
         this.grade1 = grade1;
         this.grade2 = grade2;
@@ -33,7 +33,7 @@ public class StudentSubject extends EurecaMapValue {
         this.status_id = status_id;
     }
 
-    public StudentSubject() {
+    public StudentPerformance() {
     }
 
     public int getAbsences() {
