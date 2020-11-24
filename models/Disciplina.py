@@ -218,52 +218,44 @@ class Disciplina():
 
 
   def get_class_overview(self, subject_code):
-    turmas_query = 'SELECT "Turma".periodo, "DiscenteDisciplina".id_turma, COUNT("DiscenteDisciplina".*) \
+    turmas_query = 'SELECT "Turma".periodo, "DiscenteDisciplina".id_turma, \
+        COUNT("DiscenteDisciplina".*), "TurmaProfessor".siape \
       FROM "DiscenteDisciplina" \
       INNER JOIN "DiscenteVinculo" \
         ON "DiscenteDisciplina".matricula = "DiscenteVinculo".matricula \
       INNER JOIN "Turma" \
         ON "DiscenteDisciplina".id_turma = "Turma".id \
+      INNER JOIN "TurmaProfessor" \
+        ON "Turma".id = "TurmaProfessor".id_turma \
       INNER JOIN "Disciplina" \
         ON "Turma".id_disciplina = "Disciplina".id \
       AND "Disciplina".codigo = \'' + subject_code + '\' \
-      GROUP BY "DiscenteDisciplina".id_turma, "Turma".periodo'
-
-    professores_query = 'SELECT DISTINCT "TurmaProfessor".siape \
-      FROM "TurmaProfessor" \
-      INNER JOIN "Turma" \
-        ON "TurmaProfessor".id_turma = "Turma".id \
-      INNER JOIN "Disciplina" \
-        ON "Turma".id_disciplina = "Disciplina".id \
-      WHERE "Disciplina".codigo = \'' + subject_code + '\''
+      GROUP BY "DiscenteDisciplina".id_turma, "Turma".periodo, "TurmaProfessor".siape'
 
     result = self.connection.select(turmas_query)
-    result_professores = self.connection.select(professores_query)
 
     dic_disciplinas = {}
     for i in range(len(result)):
       if (result[i][0] not in dic_disciplinas):
-        dic_disciplinas[result[i][0]] = []
-        dic_disciplinas[result[i][0]].append(result[i][2])
+        dic_disciplinas[result[i][0]] = { "students": [], "teachers": [] }
+        dic_disciplinas[result[i][0]]["students"].append(result[i][2])
+        dic_disciplinas[result[i][0]]["teachers"].append(result[i][3])
       else:
-        dic_disciplinas[result[i][0]].append(result[i][2])
+        dic_disciplinas[result[i][0]]["students"].append(result[i][2])
+        dic_disciplinas[result[i][0]]["teachers"].append(result[i][3])
 
-    aux = []
+    classes = []
     for i in dic_disciplinas:
-      aux.append({
-        "periodo": i,
-        "turmas": dic_disciplinas[i],
-        "total": sum(dic_disciplinas[i])
+      classes.append({
+        "period": i,
+        "total": sum(dic_disciplinas[i]["students"]),
+        "teachers": dic_disciplinas[i]["teachers"],
+        "students": dic_disciplinas[i]["students"]
       })
-    
-    lista_professores = []
-    for i in range(len(result_professores)):
-      lista_professores.append(result_professores[i][0])
 
     return jsonify(
-      professores=lista_professores,
-      disciplina=subject_code,
-      turmas=aux
+      subject_code=subject_code,
+      classes=classes
     )
   
 
