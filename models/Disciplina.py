@@ -217,7 +217,11 @@ class Disciplina():
       )
 
 
-  def get_class_overview(self, subject_code):
+  # Função que obtém um resumo das turmas de uma determinada disciplina, resumo este que contém
+  ## o número de alunos por turma e por período, além do código do professor que a leciona.
+  def get_class_overview(self, args):
+    subject_code = args.get('subject')
+
     turmas_query = 'SELECT "Turma".periodo, "DiscenteDisciplina".id_turma, \
         COUNT("DiscenteDisciplina".*), "TurmaProfessor".siape \
       FROM "DiscenteDisciplina" \
@@ -229,10 +233,34 @@ class Disciplina():
         ON "Turma".id = "TurmaProfessor".id_turma \
       INNER JOIN "Disciplina" \
         ON "Turma".id_disciplina = "Disciplina".id \
-      AND "Disciplina".codigo = \'' + subject_code + '\' \
-      GROUP BY "DiscenteDisciplina".id_turma, "Turma".periodo, "TurmaProfessor".siape'
+      AND "Disciplina".codigo = \'' + subject_code + '\''
+
+    # caso sejam passados três filtros na rota: subject, metric e from.  
+    if (len(args) == 3):
+      minimo = args.get('from')
+
+      turmas_query += 'AND "Turma".periodo = \'' + minimo + '\' \
+        GROUP BY "DiscenteDisciplina".id_turma, "Turma".periodo, "TurmaProfessor".siape'
+
+    # caso sejam passados quatro filtros na rota: subject, metric, from e to.
+    elif (len(args) == 4):
+      minimo = args.get('from')
+      maximo = args.get('to')
+
+      turmas_query += 'AND "Turma".periodo BETWEEN \'' + minimo + '\' AND \'' + maximo +'\' \
+        GROUP BY "DiscenteDisciplina".id_turma, "Turma".periodo, "TurmaProfessor".siape'  
+    
+    # caso sejam passados apenas dois filtros na rota: subject e metric.
+    else:
+      turmas_query += 'GROUP BY "DiscenteDisciplina".id_turma, "Turma".periodo, "TurmaProfessor".siape'
 
     result = self.connection.select(turmas_query)
+
+    if (len(result) == 0):
+      return jsonify(
+        subject_code=subject_code,
+        error="Non-existent subject"
+      )
 
     dic_disciplinas = {}
     for i in range(len(result)):
@@ -260,9 +288,8 @@ class Disciplina():
   
 
   def get_metrics(self, args):
-    subject_code = args.get('subject')
     metric_value = args.get('metric')
 
     if (metric_value == 'class_overview'):
-      result = self.get_class_overview(subject_code)
+      result = self.get_class_overview(args) 
       return result
