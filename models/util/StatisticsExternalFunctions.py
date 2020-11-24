@@ -70,7 +70,7 @@ def response_json_to_csv_actives_export(dados):
       "paid-in_periods": registro[2],
       "mandatory_credits_paid-in": registro[3],
       "optional_credits_paid-in": registro[4],
-      "complementary_credits_paid": registro[5],
+      "complementary_credits_paid-in": registro[5],
       "quota": registro[6],
       "genre": registro[7],
       "marital_status": registro[8],
@@ -81,7 +81,7 @@ def response_json_to_csv_actives_export(dados):
       "total_locks": registro[13],
       "institutional_enrollments": registro[14],
       "student_mobility": registro[15],
-      "overall_average_ticket": registro[16]
+      "overall_average_admission": registro[16]
     })
   
   return jsonify(json_return)
@@ -99,7 +99,7 @@ def response_json_to_csv_graduates_export(dados):
       "paid-in_periods": registro[2],
       "mandatory_credits_paid-in": registro[3],
       "optional_credits_paid-in": registro[4],
-      "complementary_credits_paid": registro[5],
+      "complementary_credits_paid-in": registro[5],
       "quota": registro[6],
       "genre": registro[7],
       "marital_status": registro[8],
@@ -110,7 +110,7 @@ def response_json_to_csv_graduates_export(dados):
       "total_locks": registro[13],
       "institutional_enrollments": registro[14],
       "student_mobility": registro[15],
-      "overall_average_ticket": registro[16]
+      "overall_average_admission": registro[16]
     })
   
   return jsonify(json_return)
@@ -129,7 +129,7 @@ def response_json_to_csv_escaped_export(dados):
       "paid-in_periods": registro[3],
       "mandatory_credits_paid-in": registro[4],
       "optional_credits_paid-in": registro[5],
-      "complementary_credits_paid": registro[6],
+      "complementary_credits_paid-in": registro[6],
       "quota": registro[7],
       "genre": registro[8],
       "marital_status": registro[9],
@@ -140,7 +140,7 @@ def response_json_to_csv_escaped_export(dados):
       "total_locks": registro[14],
       "institutional_enrollments": registro[15],
       "student_mobility": registro[16],
-      "overall_average_ticket": registro[17]
+      "overall_average_admission": registro[17]
     })
   
   return jsonify(json_return)
