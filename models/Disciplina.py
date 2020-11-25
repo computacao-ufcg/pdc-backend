@@ -221,6 +221,7 @@ class Disciplina():
   ## o número de alunos por turma e por período, além do código do professor que a leciona.
   def get_class_overview(self, args):
     subject_code = args.get('subject')
+    metric = args.get('metric')
 
     turmas_query = 'SELECT "Turma".periodo, "DiscenteDisciplina".id_turma, \
         COUNT("DiscenteDisciplina".*), "TurmaProfessor".siape \
@@ -272,24 +273,39 @@ class Disciplina():
         dic_disciplinas[result[i][0]]["students"].append(result[i][2])
         dic_disciplinas[result[i][0]]["teachers"].append(result[i][3])
 
-    classes = []
-    for i in dic_disciplinas:
-      classes.append({
-        "period": i,
-        "total": sum(dic_disciplinas[i]["students"]),
-        "teachers": dic_disciplinas[i]["teachers"],
-        "students": dic_disciplinas[i]["students"]
-      })
+    if (metric == 'class_overview'):
+      classes = []
+      for i in dic_disciplinas:
+        classes.append({
+          "period": i,
+          "total": sum(dic_disciplinas[i]["students"]),
+          "teachers": dic_disciplinas[i]["teachers"],
+          "students": dic_disciplinas[i]["students"]
+        })
+    
+    elif (metric == 'class_statistics'):
+      classes = []
+      for i in dic_disciplinas:
+        classes.append({
+          "period": i,
+          "minimum": min(dic_disciplinas[i]["students"]),
+          "maximum": max(dic_disciplinas[i]["students"]),
+          "average": round(sum(dic_disciplinas[i]["students"]) / len(dic_disciplinas[i]["students"]), 2)
+        })
 
     return jsonify(
       subject_code=subject_code,
       classes=classes
     )
-  
+
 
   def get_metrics(self, args):
     metric_value = args.get('metric')
 
     if (metric_value == 'class_overview'):
       result = self.get_class_overview(args) 
+      return result
+
+    elif (metric_value == 'class_statistics'):
+      result = self.get_class_overview(args)
       return result
