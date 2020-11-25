@@ -299,13 +299,6 @@ class Disciplina():
     )
 
 
-  def get_metrics(self, args):
-    metric_value = args.get('metric')
-
-    if (metric_value == 'class_overview'):
-      result = self.get_class_overview(args) 
-      return result
-
-    elif (metric_value == 'class_statistics'):
-      result = self.get_class_overview(args)
-      return result
+  def get_metrics(self, args):      
+    result = self.get_class_overview(args) 
+    return result
