@@ -30,7 +30,7 @@ class Disciplina():
 
     # caso seja passado apenas o filtro 'de'.
     if (len(args) == 1):
-      periodo = args.get('de')
+      periodo = args.get('from')
 
       matriculas_totais = base_query + 'AND "Turma".periodo=\'' + str(periodo) + '\' \
         GROUP BY "Disciplina".codigo'
@@ -41,10 +41,10 @@ class Disciplina():
 
     # caso sejam passados os filtros 'de' e 'ate'.
     elif (len(args) == 2):
-      minimo = args.get('de')
-      maximo = args.get('ate')
+      minimo = args.get('from')
+      maximo = args.get('to')
 
-      if (minimo > maximo or minimo == maximo):
+      if (minimo > maximo):
         return { "error": "Parameters or invalid request" }, 404
 
       matriculas_totais = base_query + 'AND "Turma".periodo BETWEEN \'' + str(minimo) + '\' AND \'' + str(maximo) + '\'\
@@ -143,12 +143,27 @@ class Disciplina():
     
     return outliers
 
+  
+  # Obtém uma lista dos períodos para os labels do Slider no frontend.
+  def get_periods(self):
+    periodos = 'SELECT DISTINCT "Turma".periodo FROM "Turma" \
+      ORDER BY "Turma".periodo'
+
+    periodos = self.connection.select(periodos)
+
+    lista_periodos = []
+    for i in range(len(periodos)-1):
+      lista_periodos.append(periodos[i][0])
+    
+    return lista_periodos
+
 
   # Processa a querie para cada um dos agrupamentos e retorna a resposta json com todas as
   ## informações para os boxplot's de cada um dos grupos de disciplinas.
   def get_success_rates_of_all_subjects_group(self, args):
     labels = ['Obrigatórias', 'Optativas gerais', 'Optativas específicas', 'Complementares',
       'Extracurriculares']
+
     success_rates = []
     for i in range(1, 4):
       success_rates.append(self.get_success_rates_by_subject_group(i, args))
@@ -188,5 +203,93 @@ class Disciplina():
           }
         })
 
-    return response
-      
+    if (len(args) == 0):
+      periodos = self.get_periods()
+
+      return jsonify(
+        dados=response,
+        periodos=periodos
+      )
+
+    else:
+      return jsonify(
+        response
+      )
+
+
+  # Função que obtém um resumo das turmas de uma determinada disciplina, resumo este que contém
+  ## o número de alunos por turma e por período, além do código do professor que a leciona.
+  def get_class_overview(self, args):
+    subject_code = args.get('subject')
+
+    turmas_query = 'SELECT "Turma".periodo, "DiscenteDisciplina".id_turma, \
+        COUNT("DiscenteDisciplina".*), "TurmaProfessor".siape \
+      FROM "DiscenteDisciplina" \
+      INNER JOIN "DiscenteVinculo" \
+        ON "DiscenteDisciplina".matricula = "DiscenteVinculo".matricula \
+      INNER JOIN "Turma" \
+        ON "DiscenteDisciplina".id_turma = "Turma".id \
+      INNER JOIN "TurmaProfessor" \
+        ON "Turma".id = "TurmaProfessor".id_turma \
+      INNER JOIN "Disciplina" \
+        ON "Turma".id_disciplina = "Disciplina".id \
+      AND "Disciplina".codigo = \'' + subject_code + '\''
+
+    # caso sejam passados três filtros na rota: subject, metric e from.  
+    if (len(args) == 3):
+      minimo = args.get('from')
+
+      turmas_query += 'AND "Turma".periodo = \'' + minimo + '\' \
+        GROUP BY "DiscenteDisciplina".id_turma, "Turma".periodo, "TurmaProfessor".siape'
+
+    # caso sejam passados quatro filtros na rota: subject, metric, from e to.
+    elif (len(args) == 4):
+      minimo = args.get('from')
+      maximo = args.get('to')
+
+      turmas_query += 'AND "Turma".periodo BETWEEN \'' + minimo + '\' AND \'' + maximo +'\' \
+        GROUP BY "DiscenteDisciplina".id_turma, "Turma".periodo, "TurmaProfessor".siape'  
+    
+    # caso sejam passados apenas dois filtros na rota: subject e metric.
+    else:
+      turmas_query += 'GROUP BY "DiscenteDisciplina".id_turma, "Turma".periodo, "TurmaProfessor".siape'
+
+    result = self.connection.select(turmas_query)
+
+    if (len(result) == 0):
+      return jsonify(
+        subject_code=subject_code,
+        error="Non-existent subject"
+      )
+
+    dic_disciplinas = {}
+    for i in range(len(result)):
+      if (result[i][0] not in dic_disciplinas):
+        dic_disciplinas[result[i][0]] = { "students": [], "teachers": [] }
+        dic_disciplinas[result[i][0]]["students"].append(result[i][2])
+        dic_disciplinas[result[i][0]]["teachers"].append(result[i][3])
+      else:
+        dic_disciplinas[result[i][0]]["students"].append(result[i][2])
+        dic_disciplinas[result[i][0]]["teachers"].append(result[i][3])
+
+    classes = []
+    for i in dic_disciplinas:
+      classes.append({
+        "period": i,
+        "total": sum(dic_disciplinas[i]["students"]),
+        "teachers": dic_disciplinas[i]["teachers"],
+        "students": dic_disciplinas[i]["students"]
+      })
+
+    return jsonify(
+      subject_code=subject_code,
+      classes=classes
+    )
+  
+
+  def get_metrics(self, args):
+    metric_value = args.get('metric')
+
+    if (metric_value == 'class_overview'):
+      result = self.get_class_overview(args) 
+      return result

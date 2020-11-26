@@ -50,7 +50,7 @@ class Curso():
     
 
   def get_period(self, args):
-      periodo = args.get('de')
+      periodo = args.get('from')
 
       result = 'AND "DiscenteVinculo".periodo_ingresso=\'' + str(periodo) + '\''
       return result
@@ -75,8 +75,8 @@ class Curso():
       base_query += self.get_period(args)
 
     elif (len(args) == 2):
-      minimo = args.get('de')
-      maximo = args.get('ate')
+      minimo = args.get('from')
+      maximo = args.get('to')
 
       # Caso o periodo minimo do intervalo seja maior que o maximo, retorna
       ## uma mensagem de erro com código 404 not found.
@@ -123,8 +123,8 @@ class Curso():
       base_query += self.get_period(args)
 
     elif (len(args) == 2):
-      minimo = args.get('de')
-      maximo = args.get('ate')
+      minimo = args.get('from')
+      maximo = args.get('to')
 
       # Caso o periodo minimo do intervalo seja maior que o maximo, retorna
       ## uma mensagem de erro com código 404 not found.
@@ -158,7 +158,7 @@ class Curso():
     # Para rotas do tipo /api/estatisticas/egressos?de=2019.2, por exemplo.
     ## Retorna o número de egressos que o período informado na rota obteve.
     if (len(args) == 1):
-      periodo = args.get('de')
+      periodo = args.get('from')
 
       base_query += 'AND periodo_situacao=\'' + str(periodo) + '\' \
         GROUP BY periodo_situacao \
@@ -169,9 +169,9 @@ class Curso():
       # Caso não hajam registros que correspondam a query passada.
       if (len(result) == 0):
         return { 
-          "periodo_conclusao": periodo, 
-          "qtd_egressos": 0,
-          "cra_medio": 0 
+          "completion_period": periodo, 
+          "amount_graduates": 0,
+          "avg_cra": 0 
         }
       else:
         return jsonify(response_json_to_graduates_route(result))
@@ -180,8 +180,8 @@ class Curso():
     ## retornam o número de egressos por período na faixa que foi especificada na rota, além
     ### de suas estatísticas.
     elif (len(args) == 2):
-      minimo = args.get('de')
-      maximo = args.get('ate')
+      minimo = args.get('from')
+      maximo = args.get('to')
 
       # Caso o periodo minimo do intervalo seja maior que o maximo ou então igual, retorna
       ## uma mensagem de erro com código 404 not found.
@@ -202,14 +202,14 @@ class Curso():
     statistics = get_statistics(result)
 
     return jsonify(
-      total_graduados=statistics[0], 
-      media_graduados=statistics[1], 
-      periodo_min_graduados=statistics[2], 
-      periodo_max_graduados=statistics[3],
-      min_graduados=statistics[4], 
-      max_graduados=statistics[5],
-      cra_medio=statistics[6], 
-      periodos=response_json_to_graduates_route(result)
+      total_graduates=statistics[0], 
+      avg_graduates=statistics[1], 
+      bottom_period=statistics[2], 
+      top_period=statistics[3],
+      min_graduates=statistics[4], 
+      max_graduates=statistics[5],
+      avg_cra=statistics[6], 
+      content=response_json_to_graduates_route(result)
     )
   
 
@@ -236,14 +236,14 @@ class Curso():
       AND id_situacao_vinculo = ' + self.id_graduado
 
     if (len(args) == 1):
-      periodo = args.get('de')
+      periodo = args.get('from')
 
       base_query += 'AND periodo_situacao=\'' + str(periodo) + '\' \
         ORDER BY periodo_situacao'
 
     elif (len(args) == 2):
-      minimo = args.get('de')
-      maximo = args.get('ate')
+      minimo = args.get('from')
+      maximo = args.get('to')
 
       # Caso o periodo minimo do intervalo seja maior que o maximo ou então igual, retorna
       ## uma mensagem de erro com código 404 not found.
@@ -266,7 +266,7 @@ class Curso():
     # Verifica se foi passado somente um parâmetro na rota, que no caso, é o período
     ## a ser consultado o número de evadidos.
     if (len(args) == 1):
-      periodo = args.get('de')
+      periodo = args.get('from')
 
       # Processando queries com os ID's de 1 a 9 e armazenando todos os resultados em uma lista,
       ## para posteriormente fazer um merge dos resultados.
@@ -282,7 +282,7 @@ class Curso():
       # Caso não hajam resultados para o periodo especificado, é retornado um json com
       ## todas as tags zeradas.
       if (len(joined_results) == 0):
-        retorno =  {"periodo": periodo, "tags": { "tag1": 0, "tag2": 0, "tag3": 0, 
+        retorno =  {"period": periodo, "tags": { "tag1": 0, "tag2": 0, "tag3": 0, 
           "tag4": 0, "tag5": 0, "tag6": 0, "tag7": 0, "tag8": 0, "tag9": 0, "tag13": 0 } }
         
         return jsonify(retorno)
@@ -292,19 +292,19 @@ class Curso():
       json_return = response_json_to_escaped_route(joined_results_with_zeros)
 
       return jsonify(
-        dados=json_return,
-        total_evadidos_bruto=statistics[0],
-        total_evadidos_liquido=statistics[1],
-        evadidos_ingressos=statistics[2],
-        evadidos_egressos=statistics[3]
+        content=json_return,
+        gross_total_dropouts=statistics[0],
+        net_total_dropouts=statistics[1],
+        escaped_admissions=statistics[2],
+        escaped_graduates=statistics[3]
       )
 
     # Verifica se foram passados dois parâmetro na rota, que no caso, é o período de início
     ## e fim para a consulta nesse intervalo sobre o número de evadidos por período por todos
     ### os tipos de evasão.
     elif (len(args) == 2):
-      minimo = args.get('de')
-      maximo = args.get('ate')
+      minimo = args.get('from')
+      maximo = args.get('to')
 
       # Caso o periodo minimo do intervalo seja maior que o maximo ou então igual, retorna
       ## uma mensagem de erro com código 404 not found.
@@ -326,14 +326,14 @@ class Curso():
 
       json_return = response_json_to_escaped_route(joined_results_with_zeros)
 
-      sorted_json = sorted(json_return, key=lambda k: k['periodo'])
+      sorted_json = sorted(json_return, key=lambda k: k['period'])
 
       return jsonify(
-        dados=sorted_json, 
-        total_evadidos_bruto=statistics[0],
-        total_evadidos_liquido=statistics[1],
-        evadidos_ingressos=statistics[2],
-        evadidos_egressos=statistics[3]
+        content=sorted_json, 
+        gross_total_dropouts=statistics[0],
+        net_total_dropouts=statistics[1],
+        escaped_admissions=statistics[2],
+        escaped_graduates=statistics[3]
       )
       
     # Caso não seja passado parâmetro algum na rota, são trazidos os dados de todos os períodos
@@ -354,14 +354,14 @@ class Curso():
 
       json_return = response_json_to_escaped_route(joined_results_with_zeros)
 
-      sorted_json = sorted(json_return, key=lambda k: k['periodo'])
+      sorted_json = sorted(json_return, key=lambda k: k['period'])
       
       return jsonify(
-        dados=sorted_json, 
-        total_evadidos_bruto=statistics[0],
-        total_evadidos_liquido=statistics[1],
-        evadidos_ingressos=statistics[2],
-        evadidos_egressos=statistics[3]
+        content=sorted_json, 
+        gross_total_dropouts=statistics[0],
+        net_total_dropouts=statistics[1],
+        escaped_admissions=statistics[2],
+        escaped_graduates=statistics[3]
       )  
 
   
@@ -392,14 +392,14 @@ class Curso():
       AND id_situacao_vinculo <> ' + self.id_regular
 
     if (len(args) == 1):
-      periodo = args.get('de')
+      periodo = args.get('from')
 
       base_query += 'AND periodo_situacao=\'' + str(periodo) + '\' \
         ORDER BY id_situacao_vinculo' 
     
     elif (len(args) == 2):
-      minimo = args.get('de')
-      maximo = args.get('ate')
+      minimo = args.get('from')
+      maximo = args.get('to')
 
       # Caso o periodo minimo do intervalo seja maior que o maximo ou então igual, retorna
       ## uma mensagem de erro com código 404 not found.
@@ -450,14 +450,14 @@ class Curso():
       acumulador_velocidades += velocidade_media_aluno
 
       alunos_velocidades.append({
-        "matricula": matricula,
-        "velocidade_media": round(velocidade_media_aluno, 2),
+        "enrollment": matricula,
+        "avg_speed": round(velocidade_media_aluno, 2),
       })
 
     return jsonify(
-      alunos_ativos=alunos_velocidades,
-      qtd_ativos=qtd_ativos,
-      velocidade_media_ativos=round(acumulador_velocidades / qtd_ativos, 2),
+      active_students=alunos_velocidades,
+      amount_actives=qtd_ativos,
+      actives_avg_speed=round(acumulador_velocidades / qtd_ativos, 2),
     )
 
   # Função que calcula a exequibilidade de todos os alunos ativos do curso de Computação na
@@ -491,8 +491,8 @@ class Curso():
         ((constants.PERIODOS_MAXIMO - 1 - periodos_integralizados) * constants.CREDITOS_MAXIMO + constants.CREDITOS_CONCLUINTE)
 
       alunos_exequibilidades.append({
-        "matricula": matricula,
-        "exequibilidade": round(exequibilidade, 2)
+        "enrollment": matricula,
+        "exequibility": round(exequibilidade, 2)
       })
     
     return jsonify(alunos_exequibilidades)
@@ -527,11 +527,14 @@ class Curso():
         cred_opt_int = 0
 
       creditos_totais = cred_obrig_int + cred_opt_int
-      taxa_sucesso = cred_totais_matriculados / creditos_totais
+      if (creditos_totais > 0):
+        taxa_sucesso = cred_totais_matriculados / creditos_totais
+      else:
+        taxa_sucesso = 0
 
       alunos_taxas_de_sucesso.append({
-        "matricula": matricula,
-        "taxa_de_sucesso": round(taxa_sucesso, 2)
+        "enrollment": matricula,
+        "success_rate": round(taxa_sucesso, 2)
       })
 
     return jsonify(alunos_taxas_de_sucesso)
