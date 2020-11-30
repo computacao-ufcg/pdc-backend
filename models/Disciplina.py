@@ -217,8 +217,8 @@ class Disciplina():
       )
 
 
-  # Função que obtém um resumo das turmas de uma determinada disciplina, resumo este que contém
-  ## o número de alunos por turma e por período, além do código do professor que a leciona.
+  # Função que efetua o cálculo de métricas sobre as turmas de uma determinada disciplina em
+  ## um intervalo de períodos.
   def get_class_overview_success_and_statistics(self, args):
     subject_code = args.get('subject')
     metric = args.get('metric')
@@ -269,12 +269,15 @@ class Disciplina():
 
     turmas_aprovadas = self.connection.select(turmas_aprovadas_query)
 
+    # Resposta padrão para o caso de que não hajam resultados válidos para os parâmetros passados.
     if (len(turmas_totais) == 0):
       return jsonify(
         subject_code=subject_code,
         error="Non-existent subject"
       )
 
+    # Criação de um mapa que agrupa as informações de número de alunos e professores das turmas
+    ## por período.
     dic_disciplinas = {}
     for i in range(len(turmas_totais)):
       if (turmas_totais[i][0] not in dic_disciplinas):
@@ -285,6 +288,9 @@ class Disciplina():
         dic_disciplinas[turmas_totais[i][0]]["students"].append(turmas_totais[i][2])
         dic_disciplinas[turmas_totais[i][0]]["teachers"].append(turmas_totais[i][3])
 
+    # Caso a métrica selecionada seja a 'class_overview', ela retorna um resumo das turmas de uma
+    ## determinada disciplina, informações tais como o número de alunos por turma, os professores 
+    ### dessas turmas e o número total de alunos de uma disciplina por período.
     classes = []
     if (metric == 'class_overview'):
       for i in dic_disciplinas:
@@ -295,6 +301,8 @@ class Disciplina():
           "students": dic_disciplinas[i]["students"]
         })
     
+    # Caso a métrica selecionada seja a 'class_statistics', ela retorna em um período, a turma que
+    ## teve mais alunos, menos alunos e a média de alunos entre todas as turmas do período.
     elif (metric == 'class_statistics'):
       for i in dic_disciplinas:
         classes.append({
@@ -304,6 +312,9 @@ class Disciplina():
           "average": round(sum(dic_disciplinas[i]["students"]) / len(dic_disciplinas[i]["students"]), 2)
         })
     
+    # Caso a métrica selecionada seja a 'success_overview', ela retorna em um período, a taxa de
+    ## sucesso de cada uma das turmas, que é o quociente entre o número de aprovadas na turma
+    ### e o número total de alunos na turma. Além da média das taxas de sucesso do período.
     elif (metric == 'success_overview'):
       for i in range(len(turmas_aprovadas)):
         if (turmas_aprovadas[i][0] in dic_disciplinas):
@@ -318,33 +329,42 @@ class Disciplina():
         if (len(success_rates) == 1):
           classes.append({
             "period": i,
-            "t1": success_rates[0],
+            "rates_by_class": {
+              "t1": success_rates[0],
+            },
+            "teachers": dic_disciplinas[i]["teachers"],
             "total": round(sum(success_rates), 2)
           })        
         elif (len(success_rates) == 2):
           classes.append({
             "period": i,
-            "t1": success_rates[0],
-            "t2": success_rates[1],
+            "rates_by_class": {
+              "t1": success_rates[0],
+              "t2": success_rates[1],
+            },
+            "teachers": dic_disciplinas[i]["teachers"],
             "total": round(sum(success_rates), 2)
           })
         elif (len(success_rates) == 3):
           classes.append({
             "period": i,
-            "t1": success_rates[0],
-            "t2": success_rates[1],
-            "t3": success_rates[2],
+            "rates_by_class": {
+              "t1": success_rates[0],
+              "t2": success_rates[1],
+              "t3": success_rates[2],
+            },
+            "teachers": dic_disciplinas[i]["teachers"],
             "total": round(sum(success_rates), 2)
           })
         
-
-
     return jsonify(
       subject_code=subject_code,
       classes=classes
     )
 
 
+  # Função que a partir da métrica selecionada na rota delega para outra função executar o 
+  ## processamento da métrica.
   def get_metrics(self, args): 
     metric = args.get('metric')
     result = self.get_class_overview_success_and_statistics(args)
