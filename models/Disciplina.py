@@ -217,10 +217,11 @@ class Disciplina():
       )
 
 
-  # Função que obtém um resumo das turmas de uma determinada disciplina, resumo este que contém
-  ## o número de alunos por turma e por período, além do código do professor que a leciona.
-  def get_class_overview(self, args):
+  # Função que efetua o cálculo de métricas sobre as turmas de uma determinada disciplina em
+  ## um intervalo de períodos.
+  def get_class_overview_success_and_statistics(self, args):
     subject_code = args.get('subject')
+    metric = args.get('metric')
 
     turmas_query = 'SELECT "Turma".periodo, "DiscenteDisciplina".id_turma, \
         COUNT("DiscenteDisciplina".*), "TurmaProfessor".siape \
@@ -235,11 +236,16 @@ class Disciplina():
         ON "Turma".id_disciplina = "Disciplina".id \
       AND "Disciplina".codigo = \'' + subject_code + '\''
 
+    turmas_aprovadas_query = turmas_query + 'AND "DiscenteDisciplina".id_situacao = 1'
+
     # caso sejam passados três filtros na rota: subject, metric e from.  
     if (len(args) == 3):
       minimo = args.get('from')
 
       turmas_query += 'AND "Turma".periodo = \'' + minimo + '\' \
+        GROUP BY "DiscenteDisciplina".id_turma, "Turma".periodo, "TurmaProfessor".siape'
+
+      turmas_aprovadas_query += 'AND "Turma".periodo = \'' + minimo + '\' \
         GROUP BY "DiscenteDisciplina".id_turma, "Turma".periodo, "TurmaProfessor".siape'
 
     # caso sejam passados quatro filtros na rota: subject, metric, from e to.
@@ -249,47 +255,118 @@ class Disciplina():
 
       turmas_query += 'AND "Turma".periodo BETWEEN \'' + minimo + '\' AND \'' + maximo +'\' \
         GROUP BY "DiscenteDisciplina".id_turma, "Turma".periodo, "TurmaProfessor".siape'  
+
+      turmas_aprovadas_query += 'AND "Turma".periodo BETWEEN \'' + minimo + '\' AND \'' + maximo +'\' \
+        GROUP BY "DiscenteDisciplina".id_turma, "Turma".periodo, "TurmaProfessor".siape'
     
     # caso sejam passados apenas dois filtros na rota: subject e metric.
     else:
       turmas_query += 'GROUP BY "DiscenteDisciplina".id_turma, "Turma".periodo, "TurmaProfessor".siape'
 
-    result = self.connection.select(turmas_query)
+      turmas_aprovadas_query += 'GROUP BY "DiscenteDisciplina".id_turma, "Turma".periodo, "TurmaProfessor".siape'
 
-    if (len(result) == 0):
+    turmas_totais = self.connection.select(turmas_query)
+
+    turmas_aprovadas = self.connection.select(turmas_aprovadas_query)
+
+    # Resposta padrão para o caso de que não hajam resultados válidos para os parâmetros passados.
+    if (len(turmas_totais) == 0):
       return jsonify(
         subject_code=subject_code,
         error="Non-existent subject"
       )
 
+    # Criação de um mapa que agrupa as informações de número de alunos e professores das turmas
+    ## por período.
     dic_disciplinas = {}
-    for i in range(len(result)):
-      if (result[i][0] not in dic_disciplinas):
-        dic_disciplinas[result[i][0]] = { "students": [], "teachers": [] }
-        dic_disciplinas[result[i][0]]["students"].append(result[i][2])
-        dic_disciplinas[result[i][0]]["teachers"].append(result[i][3])
+    for i in range(len(turmas_totais)):
+      if (turmas_totais[i][0] not in dic_disciplinas):
+        dic_disciplinas[turmas_totais[i][0]] = { "students": [], "teachers": [], "approved": [] }
+        dic_disciplinas[turmas_totais[i][0]]["students"].append(turmas_totais[i][2])
+        dic_disciplinas[turmas_totais[i][0]]["teachers"].append(turmas_totais[i][3])
       else:
-        dic_disciplinas[result[i][0]]["students"].append(result[i][2])
-        dic_disciplinas[result[i][0]]["teachers"].append(result[i][3])
+        dic_disciplinas[turmas_totais[i][0]]["students"].append(turmas_totais[i][2])
+        dic_disciplinas[turmas_totais[i][0]]["teachers"].append(turmas_totais[i][3])
 
+    # Caso a métrica selecionada seja a 'class_overview', ela retorna um resumo das turmas de uma
+    ## determinada disciplina, informações tais como o número de alunos por turma, os professores 
+    ### dessas turmas e o número total de alunos de uma disciplina por período.
     classes = []
-    for i in dic_disciplinas:
-      classes.append({
-        "period": i,
-        "total": sum(dic_disciplinas[i]["students"]),
-        "teachers": dic_disciplinas[i]["teachers"],
-        "students": dic_disciplinas[i]["students"]
-      })
+    if (metric == 'class_overview'):
+      for i in dic_disciplinas:
+        classes.append({
+          "period": i,
+          "total": sum(dic_disciplinas[i]["students"]),
+          "teachers": dic_disciplinas[i]["teachers"],
+          "students": dic_disciplinas[i]["students"]
+        })
+    
+    # Caso a métrica selecionada seja a 'class_statistics', ela retorna em um período, a turma que
+    ## teve mais alunos, menos alunos e a média de alunos entre todas as turmas do período.
+    elif (metric == 'class_statistics'):
+      for i in dic_disciplinas:
+        classes.append({
+          "period": i,
+          "minimum": min(dic_disciplinas[i]["students"]),
+          "maximum": max(dic_disciplinas[i]["students"]),
+          "average": round(sum(dic_disciplinas[i]["students"]) / len(dic_disciplinas[i]["students"]), 2)
+        })
+    
+    # Caso a métrica selecionada seja a 'success_overview', ela retorna em um período, a taxa de
+    ## sucesso de cada uma das turmas, que é o quociente entre o número de aprovadas na turma
+    ### e o número total de alunos na turma. Além da média das taxas de sucesso do período.
+    elif (metric == 'success_overview'):
+      for i in range(len(turmas_aprovadas)):
+        if (turmas_aprovadas[i][0] in dic_disciplinas):
+          dic_disciplinas[turmas_aprovadas[i][0]]["approved"].append(turmas_aprovadas[i][2])
 
+      for i in dic_disciplinas: 
+        success_rates = []
+        for j in range(len(dic_disciplinas[i]["students"])):
+          if (len(dic_disciplinas[i]["students"]) == len(dic_disciplinas[i]["approved"])):
+            success_rates.append(round(dic_disciplinas[i]["approved"][j] / dic_disciplinas[i]["students"][j], 2))
+        
+        if (len(success_rates) == 1):
+          classes.append({
+            "period": i,
+            "rates_by_class": {
+              "t1": success_rates[0],
+            },
+            "teachers": dic_disciplinas[i]["teachers"],
+            "total": round(sum(success_rates), 2)
+          })        
+        elif (len(success_rates) == 2):
+          classes.append({
+            "period": i,
+            "rates_by_class": {
+              "t1": success_rates[0],
+              "t2": success_rates[1],
+            },
+            "teachers": dic_disciplinas[i]["teachers"],
+            "total": round(sum(success_rates), 2)
+          })
+        elif (len(success_rates) == 3):
+          classes.append({
+            "period": i,
+            "rates_by_class": {
+              "t1": success_rates[0],
+              "t2": success_rates[1],
+              "t3": success_rates[2],
+            },
+            "teachers": dic_disciplinas[i]["teachers"],
+            "total": round(sum(success_rates), 2)
+          })
+        
     return jsonify(
       subject_code=subject_code,
       classes=classes
     )
-  
 
-  def get_metrics(self, args):
-    metric_value = args.get('metric')
 
-    if (metric_value == 'class_overview'):
-      result = self.get_class_overview(args) 
-      return result
+  # Função que a partir da métrica selecionada na rota delega para outra função executar o 
+  ## processamento da métrica.
+  def get_metrics(self, args): 
+    metric = args.get('metric')
+    result = self.get_class_overview_success_and_statistics(args)
+
+    return result
