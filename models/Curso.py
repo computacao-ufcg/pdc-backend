@@ -295,8 +295,8 @@ class Curso():
         content=json_return,
         gross_total_dropouts=statistics[0],
         net_total_dropouts=statistics[1],
-        escaped_admissions=statistics[2],
-        escaped_graduates=statistics[3]
+        relationship_escaped_by_begginers=statistics[2],
+        relationship_escaped_by_graduates=statistics[3]
       )
 
     # Verifica se foram passados dois parâmetro na rota, que no caso, é o período de início
@@ -332,8 +332,8 @@ class Curso():
         content=sorted_json, 
         gross_total_dropouts=statistics[0],
         net_total_dropouts=statistics[1],
-        escaped_admissions=statistics[2],
-        escaped_graduates=statistics[3]
+        relationship_escaped_by_begginers=statistics[2],
+        relationship_escaped_by_graduates=statistics[3]
       )
       
     # Caso não seja passado parâmetro algum na rota, são trazidos os dados de todos os períodos
@@ -360,8 +360,8 @@ class Curso():
         content=sorted_json, 
         gross_total_dropouts=statistics[0],
         net_total_dropouts=statistics[1],
-        escaped_admissions=statistics[2],
-        escaped_graduates=statistics[3]
+        relationship_escaped_by_begginers=statistics[2],
+        relationship_escaped_by_graduates=statistics[3]
       )  
 
   

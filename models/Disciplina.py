@@ -207,8 +207,8 @@ class Disciplina():
       periodos = self.get_periods()
 
       return jsonify(
-        dados=response,
-        periodos=periodos
+        content=response,
+        slider_label=periodos
       )
 
     else:
